@@ -1,0 +1,60 @@
+/* Semantic colours for the deck, bound to the theme's own tokens rather than
+ * to Tailwind's palette. The rule the whole deck depends on: red always means
+ * rootful, green always means rootless, the accent marks the one line on a
+ * slide that matters, and amber is reserved for the three uncomfortable
+ * truths and nothing else.
+ *
+ * The accent is --ac-tertiary rather than --ac-primary because the theme
+ * defines --ac-primary and --ac-warning as the same value, and collapsing the
+ * accent into the amber would destroy the distinction above. */
+
+.rootful   { color: var(--ac-error); }
+.rootless  { color: var(--ac-success); }
+.accent    { color: var(--ac-tertiary); }
+.warn      { color: var(--ac-warning); }
+
+.b-rootful  { border-color: var(--ac-error); }
+.b-rootless { border-color: var(--ac-success); }
+.b-accent   { border-color: var(--ac-tertiary); }
+
+/* Slide-level tints. Slidev puts a slide's `class:` on the slide container,
+ * so these have to reach the headings inside it. */
+.warn h1, .warn h2, .warn p    { color: var(--ac-warning); }
+.rootful h1, .rootful h2       { color: var(--ac-error); }
+
+/* The theme centres table headers but left-aligns table cells, so every
+ * column in the deck sits out of line with its own heading. Four slides use
+ * tables and all four are meant to be photographed, so they have to line up.
+ * Left is the safe default, because three of the four tables have prose in
+ * the right-hand column and prose does not right-align well. */
+.slidev-layout table th,
+.slidev-layout table td {
+  text-align: left;
+}
+
+/* The benchmark table is the exception: it is all figures, so the columns
+ * read far better flush right with tabular figures. */
+.numeric-table table th:not(:first-child),
+.numeric-table table td:not(:first-child) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Wrapping the table in a div made it shrink to fit its content, which packed
+ * the column headings against each other. Put the width back. */
+.numeric-table table {
+  width: 100%;
+}
+
+/* The theme sets 1px cell padding, which runs adjacent columns together on
+ * the condo table and on both audit tables. These are the slides the audience
+ * photographs, so they need room to breathe. */
+.slidev-layout table th,
+.slidev-layout table td {
+  padding: 0.15em 1.1em 0.15em 0;
+}
+
+.slidev-layout table th:last-child,
+.slidev-layout table td:last-child {
+  padding-right: 0;
+}
