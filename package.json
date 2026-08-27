@@ -1,0 +1,26 @@
+{
+  "name": "cds-2026-hamburg-crl-slides",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Slides for \"The Reality of Rootless Containers\", ContainerDays 2026, Hamburg",
+  "license": "CC-BY-SA-4.0",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "slidev --open",
+    "build": "slidev build",
+    "export": "slidev export --format pdf --with-clicks",
+    "export:notes": "slidev export --format pdf --with-clicks --with-toc",
+    "snippets": "go run ./cmd/snippets",
+    "install:theme": "op run --env-file=.env -- npm install"
+  },
+  "devDependencies": {
+    "@slidev/cli": "52.14.1",
+    "playwright-chromium": "1.58.2",
+    "vue": "3.5.29"
+  },
+  "dependencies": {
+    "slidev-theme-architectural-console": "0.1.1"
+  }
+}

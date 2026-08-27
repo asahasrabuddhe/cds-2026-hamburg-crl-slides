@@ -1,0 +1,8 @@
+# Copy to .npmrc. Never put the actual token here: ${NPM_TOKEN_THEME} is
+# resolved from the environment at install time by `op run`.
+#
+# The registry is pinned explicitly because this machine's global npm config
+# routes elsewhere, and the theme token must not be sent to that host.
+
+registry=https://registry.npmjs.org/
+//registry.npmjs.org/:_authToken=${NPM_TOKEN_THEME}

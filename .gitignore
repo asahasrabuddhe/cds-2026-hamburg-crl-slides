@@ -1,0 +1,9 @@
+node_modules/
+dist/
+
+# Exported artefacts, rebuilt by npm run export.
+*.pdf
+
+# Resolved from 1Password at install time, never committed.
+.env
+.npmrc
