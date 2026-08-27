@@ -695,9 +695,15 @@ A long line of local privilege-escalation bugs (filesystem mount parsers, nf_tab
 
 </div>
 
+<div class="pt-4">
+
+Ubuntu's is an allowlist, not a switch. Podman is on it. `unshare`, and the program from Demo A, are not.
+
+</div>
+
 <div class="accent pt-4">
 
-The feature that makes rootless containers possible is the same feature hardening guides tell you to disable.
+The feature that makes rootless containers possible is the one hardening guides restrict, and what you are trusting instead is a list of 91 binaries.
 
 </div>
 
@@ -705,6 +711,10 @@ The feature that makes rootless containers possible is the same feature hardenin
 
 <!--
 No exploit code. Show the sysctls, show the surface, let them draw the line.
+
+The allowlist line is provable in five seconds on the hardened VM if anyone
+pushes back: sysctl reads 1, podman run works, ./nsdemo 2 is refused. That is
+the same refusal they watched in Demo A, so call back to it.
 -->
 
 ---

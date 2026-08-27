@@ -560,11 +560,24 @@ $ sysctl kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || echo "not o
 
 **SAY**: a long line of local privilege-escalation bugs, filesystem mount
 parsers, `nf_tables`, overlayfs copy-up, were reachable by unprivileged
-users only because they could enter a user namespace first. Then the line
-from the slide, verbatim:
+users only because they could enter a user namespace first.
 
-> The feature that makes rootless containers possible is the same feature
-> hardening guides tell you to disable.
+Then the correction, which is yours and measured, and which calls back to
+Demo A: Ubuntu's sysctl is an allowlist rather than a switch. With it at its
+shipped value of 1, Podman still runs rootless containers, because
+`/etc/apparmor.d/podman` grants `userns`, as do ninety other profiles on the
+image. What gets refused is `unshare` by hand and the program from Demo A,
+because nobody wrote them a profile. They watched that refusal happen
+already without knowing what it was.
+
+Then the line from the slide, verbatim:
+
+> The feature that makes rootless containers possible is the one hardening
+> guides restrict, and what you are trusting instead is a list of 91
+> binaries.
+
+If anyone pushes back, it is five seconds on the hardened VM: the sysctl
+reads 1, `podman run` works, `./nsdemo 2` is refused.
 
 No exploit code, no live demonstration of any CVE. Show the sysctls, name
 the shape of the risk, stop there.
