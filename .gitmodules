@@ -1,0 +1,3 @@
+[submodule "vendor/crl-code"]
+	path = vendor/crl-code
+	url = https://github.com/asahasrabuddhe/cds-2026-hamburg-crl-code.git
