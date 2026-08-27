@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # actions/checkout's own `token:` input authenticates the checkout of
+      # THIS repository, not just the submodule fetch, so the default
+      # GITHUB_TOKEN has to be used above. CRL_CODE_READ_TOKEN only has read
+      # access to cds-2026-hamburg-crl-code, so it is scoped here to that one
+      # URL through a credential rewrite, then used for a manual submodule
+      # init. This is why .gitmodules carries an https URL rather than ssh:
+      # insteadOf cannot rewrite an ssh remote.
+      - name: configure credentials for the crl-code submodule
+        env:
+          CRL_CODE_READ_TOKEN: ${{ secrets.CRL_CODE_READ_TOKEN }}
+        run: |
+          git config --global \
+            url."https://x-access-token:${CRL_CODE_READ_TOKEN}@github.com/asahasrabuddhe/cds-2026-hamburg-crl-code".insteadOf \
+            "https://github.com/asahasrabuddhe/cds-2026-hamburg-crl-code"
+
+      - name: init submodules
+        run: git submodule update --init --recursive
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.27"
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          cache: npm
+
+      # setup-node writes its own .npmrc pointing at registry.npmjs.org and
+      # reads the token from NODE_AUTH_TOKEN, so the repo's gitignored .npmrc
+      # is neither present nor needed here.
+      - name: install
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_THEME }}
+
+      - name: regenerate snippets from the code submodule
+        run: go run ./cmd/snippets
+
+      # The committed snippets exist so the deck builds without the submodule
+      # initialised. That only holds if they match the code they claim to come
+      # from, so drift is a build failure rather than a silent stale slide.
+      - name: fail if committed snippets drifted from the code repo
+        run: |
+          if ! git diff --exit-code snippets/; then
+            echo "::error::snippets/ does not match a fresh regeneration from vendor/crl-code. Run 'npm run snippets' and commit the result."
+            exit 1
+          fi
+
+      - name: build deck
+        run: npm run build
+
+      - name: install chromium for export
+        run: npx playwright install --with-deps chromium
+
+      # --with-clicks, via the export script: twelve slides use click reveals
+      # and the organisers need every state, not just the final one.
+      - name: export pdf
+        run: npm run export
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: slides-pdf
+          path: "*.pdf"
+          retention-days: 30
