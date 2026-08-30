@@ -18,9 +18,13 @@ its sibling. Every path below is relative to one of those two.
 
 ### Yours, before you travel
 
-- **Push both repos.** There are two unpushed commits in the code repo and four
-  here. Nothing is on GitHub yet, and the submodule cannot be bumped until the
-  code repo's are.
+- **Push both repos.** Neither has been pushed since the fixes below landed, and
+  the submodule cannot be bumped until the code repo's commits are on GitHub.
+
+  ```bash
+  git -C ../cds-2026-hamburg-crl-code push
+  git push
+  ```
 
 - **Bump the submodule afterwards.** `vendor/crl-code` is pinned at `d54e642`,
   which is now two commits behind. The snippet generator only reads
