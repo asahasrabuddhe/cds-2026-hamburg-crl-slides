@@ -31,15 +31,30 @@ Automattic · @asahasrabuddhe
 AS
 
 <!--
-COLD OPEN HAPPENS BEFORE THIS SLIDE. Two tmux panes, already running.
-Left: podman run alpine, id says uid=0(root).
-Right: ps on the host says ajitem, /proc/PID/status says Uid: 1000.
+**S01 · COVER · 1:30**
 
-"Same process. The container says root. The host says ajitem.
- Both of them are telling the truth, and the gap between those
- two answers is the entire subject of this talk."
+The cold open runs before this slide, with no slide showing. Two tmux panes
+already up, terminal full screen.
 
-Ten seconds on this slide. Then move.
+**DO**, right pane:
+```bash
+./scripts/demo.sh 1
+```
+
+It starts a rootless container, prints `id` from inside it, finds the PID on the
+host, prints the host's view of that same PID, then prints the container's
+`uid_map`.
+
+**SAY**, once the container's `id` and the host's `Uid:` line are both up:
+> "Same process. The container says root. The host says ajitem. Both of them are
+> telling the truth, and the gap between those two answers is the entire subject
+> of this talk."
+
+Then this slide. Your name, Automattic, nothing else. Ten seconds, then move.
+
+**WATCH FOR** a pull. If the image is not already local this hangs in front of
+the room. `./scripts/demo.sh check` confirms it at pre-flight, so do not skip
+that step.
 -->
 
 ---
@@ -49,7 +64,11 @@ layout: statement
 # Both answers are true
 
 <!--
-This is the thesis. Let it sit for two seconds before the roadmap.
+**S02 · STATEMENT · 1:40**
+
+The thesis. Let it sit for two seconds before the roadmap. Do not narrate it,
+the cold open already made the point. This is the slide you gesture back to
+later.
 -->
 
 ---
@@ -73,8 +92,15 @@ I run rootless. I also think most of what people believe about it is wrong.
 </div>
 
 <!--
-Say the last line out loud. It buys credibility for the criticism later
-and stops the talk reading as a hit piece.
+**S03 · CLAIMS · 1:55**
+
+Say the three claims as written, then land the last line out loud:
+
+**SAY**
+> "I run rootless. I also think most of what people believe about it is wrong."
+
+That is what buys the right to be critical for the next twenty minutes without
+the talk reading as a hit piece.
 -->
 
 ---
@@ -86,6 +112,14 @@ layout: statement
 <div class="opacity-70 pt-4">
 Since Linux 2.2 the kernel has not asked "is this UID 0?"
 </div>
+
+<!--
+**S04 · STATEMENT · 2:30**
+
+**SAY**: since Linux 2.2 the kernel has not asked "is this UID 0". It asks
+whether the process holds the capability, evaluated against the namespace that
+owns the resource.
+-->
 
 ---
 layout: default
@@ -103,8 +137,15 @@ flowchart TD
 ```
 
 <!--
-The kernel asks: does this process hold the capability for this operation,
-in the user namespace that owns the resource?
+**S05 · DIAGRAM · 2:55**
+
+Walk it top to bottom, in order: UID and GID are who you claim to be, the
+capability sets are what you may do, the user namespace owns the other four
+namespace types, and the check runs against whoever owns the resource rather
+than against a global notion of root.
+
+The one sentence that matters: does this process hold the capability for this
+operation, in the user namespace that owns the resource?
 -->
 
 ---
@@ -117,6 +158,14 @@ layout: statement
 That ownership is how an unprivileged user configures a network<br/>
 interface, mounts a filesystem, and sets a hostname.
 </div>
+
+<!--
+**S06 · STATEMENT · 3:35**
+
+**SAY**: that ownership is the entire mechanism. It is why an unprivileged user
+can configure a network interface, mount a filesystem and set a hostname, all
+without ever holding root on the host.
+-->
 
 ---
 layout: two-cols
@@ -146,8 +195,15 @@ Walk out of the gate and try to redirect traffic on the main road, and you are a
 </div>
 
 <!--
-Sixty seconds. The point: nobody thinks the committee owns the land.
-The authority is derived, granted, revocable.
+**S07 · ANALOGY · 3:55**
+
+Sixty seconds, and do not linger. The point is that nobody thinks the committee
+owns the land: the authority is derived, granted and revocable.
+
+Read the first and last row of the table on the right, not every row.
+
+**CHECKPOINT** this is the first thing to cut if you are behind. Go straight to
+S08.
 -->
 
 ---
@@ -180,8 +236,11 @@ layout: default
 </div>
 
 <!--
-Reuse this slide four more times as a progress marker, moving the
-highlight. Costs nothing, and the room always knows where it is.
+**S08 · PROGRESS · 4:55**
+
+Name all five once. This slide comes back four more times with the highlight
+moved, so you never re-explain it, you glance at it as you land on each section.
+Costs nothing, and the room always knows where it is.
 -->
 
 ---
@@ -202,6 +261,15 @@ ajitem:100000:65536
 The administrator has delegated 65,536 UIDs, starting at 100000, to me.<br/>
 I may map them however I like inside a namespace I create.
 </div>
+
+<!--
+**S09 · IDENTITY · 5:20**
+
+**SAY**: the administrator delegated 65,536 UIDs, starting at 100000, to me. I
+may map them however I like inside a namespace I create.
+
+Nothing to type here. The live version is Demo A.
+-->
 
 ---
 layout: default
@@ -232,7 +300,14 @@ A file written by "root" inside a rootless container lands on disk owned by you.
 </v-clicks>
 
 <!--
-This surprises almost everybody. Pause here.
+**S10 · IDENTITY · 5:50**
+
+**SAY**, then pause:
+> "Container UID 0 is your own host UID. Not the start of the delegated range."
+
+Then: a file written as root inside a rootless container lands on disk owned by
+you. This surprises almost everybody, including people who run rootless
+containers daily. Pause here and let it land.
 -->
 
 ---
@@ -251,6 +326,14 @@ flowchart TD
     F --> G["child now reads as<br/>uid 0 inside, 1000 outside"]
 ```
 
+<!--
+**S11 · DIAGRAM · 6:35**
+
+Walk it. Podman forks a child into an unmapped namespace, then execs the setuid
+helper `newuidmap`, which checks `/etc/subuid` for the caller and writes
+`/proc/<pid>/uid_map` on its behalf.
+-->
+
 ---
 layout: statement
 class: warn
@@ -263,9 +346,14 @@ class: warn
 </div>
 
 <!--
-newuidmap and newgidmap. Small, well reviewed, and root.
-CVE-2018-7169 in newgidmap before shadow 4.6.
-First uncomfortable truth. There are three.
+**S12 · WARN · 7:05**
+
+**SAY**: `newuidmap` and `newgidmap`, from shadow-utils. Small, well reviewed,
+and root. They have had bugs: CVE-2018-7169 in `newgidmap` before shadow 4.6.
+Rootless describes the runtime, not the installation.
+
+First uncomfortable truth. There are three. Do not explain the colour, just let
+the tone shift.
 -->
 
 ---
@@ -283,6 +371,14 @@ layout: default
 <div v-click class="pt-8 opacity-80">
 Most rootless folklore you have heard dates from the first row.
 </div>
+
+<!--
+**S13 · FILESYSTEM · 7:35**
+
+**SAY**: most rootless folklore about slow builds dates from the first row,
+`fuse-overlayfs`. Kernel 5.11 moved overlayfs itself inside a user namespace.
+5.12 added idmapped mounts.
+-->
 
 ---
 layout: default
@@ -303,6 +399,18 @@ Remember this one. It is the exact kernel feature that unblocked
 stateful pods in Kubernetes, and we come back to it at the end.
 </div>
 
+<!--
+**S14 · FILESYSTEM · 7:55**
+
+**SAY**: the VFS shifts ownership on the fly. No recursive chown, no copy.
+
+Then plant the seed deliberately:
+> "Remember this one. It is the exact kernel feature that unblocked stateful pods
+> in Kubernetes, and we come back to it in the last five minutes."
+
+Paid back on S37.
+-->
+
 ---
 layout: default
 ---
@@ -321,6 +429,14 @@ $ cat /sys/fs/cgroup/user.slice/user-1000.slice/cgroup.controllers
 cpu io memory pids
 ```
 
+<!--
+**S15 · CGROUPS · 8:25**
+
+Read the three rows in order: v2 with delegation works, v2 without delegation is
+silently unavailable, v1 is not supported and ignored. Do not explain the
+mechanism yet, that is the next slide.
+-->
+
 ---
 layout: statement
 class: rootful
@@ -333,7 +449,13 @@ A container you believed was capped is not capped.
 </div>
 
 <!--
-Second uncomfortable truth. Ten seconds of silence here.
+**S16 · WARN · 8:55**
+
+**SAY**, slowly:
+> "A container you believed was capped is not capped."
+
+Ten seconds of silence. Second uncomfortable truth, and a genuine production
+hazard rather than a curiosity.
 -->
 
 ---
@@ -373,6 +495,14 @@ host socket → NIC
 One end of a veth pair lives in the host netns. You cannot put it there.
 </div>
 
+<!--
+**S17 · NETWORK · 9:20**
+
+**SAY**: one end of a veth pair has to live in the host's network namespace, and
+an unprivileged user cannot put it there. So rootless containers run a userspace
+TCP/IP stack instead, `pasta` or `slirp4netns`.
+-->
+
 ---
 layout: default
 ---
@@ -388,6 +518,14 @@ layout: default
 - Most CNI plugins assume host privileges and simply do not apply
 
 </v-clicks>
+
+<!--
+**S18 · NETWORK · 9:55**
+
+Run the five bullets at a clip, this is a list slide, do not dwell. The one worth
+a half-beat extra: the source IP the container sees is often the gateway rather
+than the real client, which silently breaks IP allow-lists and access logs.
+-->
 
 ---
 layout: default
@@ -405,6 +543,14 @@ layout: default
 If you benchmarked rootless networking before 2024, benchmark it again.
 </div>
 
+<!--
+**S19 · NETWORK · 10:20**
+
+**SAY**: `pasta` copies the host's actual addresses and routes rather than
+inventing a fake subnet, and it is meaningfully faster. If you benchmarked
+rootless networking before 2024, benchmark it again.
+-->
+
 ---
 layout: statement
 ---
@@ -416,10 +562,16 @@ Rootless deletes that entire category of mistake.
 </div>
 
 <!--
-5. Execution. crun/runc create the same namespaces, apply the same
-seccomp profile. Docker rootless still has a daemon, but it is yours,
-socket under $XDG_RUNTIME_DIR. This is the strongest plain argument
-for rootless and it takes fifteen seconds.
+**S20 · STATEMENT · 10:40**
+
+Fifteen seconds. Execution is the fifth moving part: `crun` and `runc` create the
+same namespaces and apply the same seccomp profile either way. No privileged
+daemon in Podman rootless. Docker rootless still has a daemon, but it is yours,
+socket under `$XDG_RUNTIME_DIR`. This deletes a whole category of operational
+mistake, and it is the strongest plain argument for rootless.
+
+**CHECKPOINT** you should be at roughly 11:00. If you are past it, go straight
+into Demo A.
 -->
 
 ---
@@ -432,7 +584,12 @@ class: text-center
 ## Podman did this in one command.<br/>What did it actually do?
 
 <!--
-Full screen terminal. Single pane, not split. ./nsdemo
+**S21 · SECTION · 11:00**
+
+**SAY**: "Podman did this in one command. What did it actually do?"
+
+Switch to a full screen terminal, single pane, right side only. This is the one
+segment in the talk with no split screen.
 -->
 
 ---
@@ -450,7 +607,26 @@ So it forks and execs. Exactly what runc does.
 </div>
 
 <!--
-Beat 1: ./nsdemo 1
+**S22 · CODE · 11:15**
+
+**SAY**: `CLONE_NEWUSER` is only legal for a single-threaded process, and the Go
+runtime is multi-threaded before `main` starts. A Go program can never unshare
+itself into a user namespace, it has to fork and exec, which is exactly what
+`runc` does.
+
+Point at the three highlighted fields, `ContainerID: 0`, `HostID: os.Getuid()`,
+`Size: 1`, and say: that struct literal is the `uid_map` line from S10.
+
+**DO**, beat 1:
+```bash
+./nsdemo 1
+```
+
+Expected: `uid=65534`, an empty `uid_map`, a full `CapEff` bitmask.
+
+**SAY** once it prints:
+> "Not root. Not you. Nobody. And look at CapEff, a full capability set, held by
+> nobody."
 -->
 
 ---
@@ -464,9 +640,23 @@ uid=65534 &nbsp; uid_map: (empty) &nbsp; CapEff: 000001ffffffffff
 </div>
 
 <!--
-After beat 1. Creating a userns grants the full set inside it,
-mapping or no mapping.
-Beat 2 next: ./nsdemo 2
+**S23 · STATEMENT · 12:15**
+
+Creating a user namespace grants the full set inside it, mapping or no mapping.
+Let it sit two seconds, then straight back to the terminal.
+
+**DO**, beat 2:
+```bash
+./nsdemo 2
+```
+
+Expected: `uid=0`, `uid_map` reads `0 <your uid> 1`, then three probe lines.
+
+```
+DENIED   append to /etc/shadow
+ALLOWED  mount a tmpfs
+ALLOWED  write into $HOME
+```
 -->
 
 ---
@@ -480,16 +670,44 @@ Three fields. That is the entire security model.
 </div>
 
 <!--
-After beat 2. Then the probe output:
-  DENIED   append to /etc/shadow
-  ALLOWED  mount a tmpfs
-  ALLOWED  write into $HOME
+**S24 · STATEMENT · 13:15**
 
-Say: that is the audit section of this talk, arriving eighteen
-minutes early. We come back to it.
+**SAY**: three fields, and that is the entire security model made visible.
 
-Beat 3: ./nsdemo 3   (cut this first if running long)
-Beat 4: ./nsdemo 4
+> "Root on a host file, denied. Root in my own home directory, allowed. Remember
+> this, it is the audit section of the whole talk arriving eighteen minutes
+> early. We come back to it on S28."
+
+**DO**, beat 3:
+```bash
+./nsdemo 3
+```
+
+Expected: `cmd.Start()` fails with `operation not permitted`. The failure comes
+from `Start()` rather than from inside the child, because the write to `uid_map`
+happens during process creation. Widening the map beyond your own ID needs
+`CAP_SETUID` in the parent namespace, which you do not have. That is why
+`/etc/subuid` and the helpers from S09 exist.
+
+**CHECKPOINT** beat 3 is the first thing to cut. Skip to beat 4 and say the line
+instead of running it.
+
+**DO**, beat 4, the best one:
+```bash
+./nsdemo 4
+```
+
+Expected in order: the child reports unmapped and blocked, two lines showing
+`newuidmap` and `newgidmap` invoked with the exact triples, then the same PID
+reporting again as `uid=0` with a two-line map.
+
+**SAY**, exactly:
+> "Same PID. No setuid call. Nothing about this process changed. The kernel
+> changed its mind about who it is."
+
+**WATCH FOR** beat 3 prints `operation not permitted` both when it is working
+correctly and when the AppArmor sysctl is blocking everything, so it is the one
+beat that is not a signal. Beats 1, 2 and 4 fail loudly.
 -->
 
 ---
@@ -504,7 +722,13 @@ about namespaces more than it cared about UID 0.
 </div>
 
 <!--
-Closes Demo A. Check the clock: should be 15:00.
+**S25 · STATEMENT · 15:00**
+
+Closes Demo A. Let it sit. Do not re-explain, you already said it. This is the
+visual confirmation.
+
+**CHECKPOINT** you should be at 15:00. The budget was four minutes from 11:00.
+If beat 3 was cut you are ahead, bank the time for demo 3.
 -->
 
 ---
@@ -517,9 +741,36 @@ class: text-center
 ## One script. Two panes.<br/>The only difference is where I typed it.
 
 <div class="font-mono text-sm pt-8">
-<span class="rootful"># sudo -i ; ./rootless-demos.sh 3</span><br/>
-<span class="rootless">$ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;./rootless-demos.sh 3</span>
+<span class="rootful"># sudo -i ; ./scripts/demo.sh 3</span><br/>
+<span class="rootless">$ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;./scripts/demo.sh 3</span>
 </div>
+
+<!--
+**S26 · SECTION · 15:00**
+
+Switch to the split screen, both panes visible. LEFT is rootful and red, RIGHT is
+rootless and green, and stays that way for the rest of the talk.
+
+**SAY**, pointing at the two lines:
+> "Left pane, sudo, this script, argument three. Right pane, same file, same
+> argument, no sudo. The only difference is which pane I typed it in."
+
+Say it once. Do not repeat it for the later demos, the room has it now.
+
+Demo 1 already ran in the cold open, so do not rerun it. Gesture at the output
+still in the scrollback, or say:
+> "Container 0 to host 1000 on the right, container 0 to host 0 on the left. No
+> translation, no boundary."
+
+**DO**, demo 2, LEFT first then RIGHT, back to back:
+```bash
+LEFT:   ./scripts/demo.sh 2
+RIGHT:  ./scripts/demo.sh 2
+```
+
+Expected: `tmpfs mount: OK` on both. The block-device mount and `mknod` succeed
+on the left and print `DENIED` on the right.
+-->
 
 ---
 layout: statement
@@ -533,9 +784,16 @@ The capability is genuine. The set of objects it applies to is not.
 </div>
 
 <!--
-After demo 2. Then the mknod jab: --privileged in rootless mode does
-not mean what people think it means.
-Demo 3 next. This is the money demo.
+**S27 · STATEMENT · 16:30**
+
+Confirms what demo 2 just showed.
+
+**SAY**: tmpfs is allowed everywhere because it carries a flag saying a user
+namespace may mount it. The real disk and the device node are not, even under
+`--privileged` on the right. Privileged in rootless mode grants everything your
+namespace holds, which still is not device access.
+
+Two seconds, advance. Demo 3 next, and it is the money demo.
 -->
 
 ---
@@ -561,6 +819,45 @@ layout: default
 </div>
 </div>
 
+<!--
+**S28 · LIVE · 16:45**
+
+**SAY** before running it:
+> "Same mistake on both sides, a volume mount most of you have written by
+> accident at some point."
+
+**DO**:
+```bash
+LEFT:   ./scripts/demo.sh 3
+RIGHT:  ./scripts/demo.sh 3
+```
+
+Expected, read step: LEFT prints the first line of `/etc/shadow`, RIGHT prints
+`DENIED`. Write step: LEFT prints `WROTE` and the script removes the backdoor
+line immediately, RIGHT prints `DENIED`.
+
+**SAY** the moment LEFT prints `WROTE`, after one full second of silence:
+> "That host now has an unauthenticated root account. One flag did it."
+
+Then, gesturing at both outputs together:
+> "The mount succeeded in both panes. Rootless did not stop the mistake. It made
+> the mistake survivable."
+
+The third step runs in the same invocation, and both panes print
+`not-a-real-key` from a scratch directory you own.
+
+**SAY**:
+> "And here is the honest half. Your own data is in the blast radius either way.
+> For a laptop or a CI runner, that is most of what an attacker wanted in the
+> first place."
+
+**WATCH FOR** the cleanup. This is the one command in the talk with a real
+consequence if it fails. The script arms a trap, but confirm it anyway:
+```bash
+LEFT:   grep backdoor /etc/passwd || echo "clean"
+```
+-->
+
 ---
 layout: statement
 ---
@@ -573,11 +870,11 @@ Rootless did not stop the mistake.<br/>
 </div>
 
 <!--
-Pause. This is the talk in one sentence.
+**S29 · STATEMENT · 18:00**
 
-Then flip it: the third step of demo 3 reads a credentials file from a
-directory you own, and it succeeds in BOTH panes. Your own data is in
-the blast radius either way.
+Pause two full seconds before advancing. This is the talk in one sentence and it
+is the line people quote. Add nothing, the slide and your delivery a moment ago
+already did the work.
 -->
 
 ---
@@ -594,6 +891,36 @@ class: text-center
 anything else &nbsp;=&nbsp; it did not
 </div>
 
+<!--
+**S30 · SECTION · 18:15**
+
+**SAY**: "ask for a limit, then ask the container what it got."
+
+**DO**, on `primary`:
+```bash
+LEFT:   ./scripts/demo.sh 4
+RIGHT:  ./scripts/demo.sh 4
+```
+
+Expected on cgroup v2 with delegation: both panes read `67108864` from inside
+the container, so the limit applied on both sides.
+
+Then the second half, live on the cgroup v1 box. That VM is already up and
+already logged in from T-90, so switch to its window rather than dialling out
+now:
+```bash
+RIGHT:  ./scripts/demo.sh 4
+```
+
+Expected there: RIGHT gets a warning and no working limit, LEFT is unaffected
+because root does not go through the same delegation path.
+
+**SAY**:
+> "67108864 means the limit landed. Anything else means it did not, and on a
+> cgroup v1 rootless host you get a warning, not an error. A container you
+> believed was capped is not capped."
+-->
+
 ---
 layout: section
 class: text-center
@@ -604,8 +931,29 @@ class: text-center
 ## Userspace networking, and its bill
 
 <div class="font-mono text-sm pt-8 opacity-70">
-pre-recorded. never benchmark live.
+measured beforehand. never benchmark live.
 </div>
+
+<!--
+**S31 · SECTION · 19:30**
+
+**SAY**: "userspace networking, and its bill." Then immediately:
+> "The throughput numbers were measured beforehand. I am not benchmarking network
+> throughput live on conference wifi, and neither should you."
+
+**DO**, live, quick and safe, RIGHT pane only:
+```bash
+RIGHT:  ./scripts/demo.sh 5
+```
+
+Expected: publishing port 80 fails on the right with a `rootlessport` error and
+succeeds on the left. The script also prints which of `pasta` and `slirp4netns`
+is in use.
+
+Narrate rather than reading the terminal: packets copied through a userspace
+process cost throughput and latency, and ports below 1024 need a sysctl that
+applies to the whole host rather than to your container.
+-->
 
 ---
 layout: default
@@ -632,6 +980,22 @@ Ubuntu 24.04, kernel 6.8, in a VM. There is no wire, so read the ratios,
 not the absolute numbers.
 </div>
 
+<!--
+**S32 · NUMBERS · 21:00**
+
+Point at the table and state the numbers from memory rather than reading cells.
+`pasta` beats `slirp4netns`, and both lose to a native veth pair on throughput.
+
+Say the caveat out loud: this was measured in a VM, so the ratios are the result
+and the absolute figures are not. Method and full output are in
+`docs/benchmarks.md` in the companion repo.
+
+**CHECKPOINT** you should be at 22:00 leaving this slide. If you are past it,
+skip to S34 and reduce S33 to one line: "there is a table in the deck, and the
+short version is that CI runners and developer laptops are where this pays off
+cleanly."
+-->
+
 ---
 layout: default
 ---
@@ -645,6 +1009,15 @@ layout: default
 | Leaked fd escapes (CVE-2024-21626) | Reachable files are ones your UID already reached |
 | Careless `-v /:/host` | Bounded by your UID's own permissions |
 | Multi-tenant CI runners | Each job gets a distinct UID range |
+
+<!--
+**S33 · TABLE · 22:00**
+
+Written to be photographed. Do not read every row. Name the categories once,
+`docker` group risk, known escape CVEs, careless volume mounts, multi-tenant CI,
+then move on. Give the room three seconds of silence with the slide up, people
+are taking photos.
+-->
 
 ---
 layout: default
@@ -661,6 +1034,15 @@ layout: default
 | Denial of service | Especially where cgroup limits are ignored |
 | Lateral movement | Same UID range, same everything |
 
+<!--
+**S34 · TABLE · 22:45**
+
+Same treatment, do not read every row. The one to say out loud rather than just
+point at:
+> "Your own data. SSH keys, cloud credentials, source code, your kubeconfig. None
+> of that is protected by any of this."
+-->
+
 ---
 layout: statement
 class: warn
@@ -669,8 +1051,15 @@ class: warn
 # Rootless *adds* an attack surface
 
 <!--
-Third uncomfortable truth, and the one that gets quoted.
-Give it room.
+**S35 · WARN · 23:30**
+
+Pause before this slide even appears if you can control the advance. Third
+uncomfortable truth, and the one that gets quoted. Say it plainly, no hedging:
+
+**SAY**
+> "Rootless adds an attack surface."
+
+Two full seconds. By now the room reads the colour before you speak.
 -->
 
 ---
@@ -710,11 +1099,35 @@ The feature that makes rootless containers possible is the one hardening guides 
 </v-clicks>
 
 <!--
-No exploit code. Show the sysctls, show the surface, let them draw the line.
+**S36 · SYSCTLS · 24:00**
 
-The allowlist line is provable in five seconds on the hardened VM if anyone
-pushes back: sysctl reads 1, podman run works, ./nsdemo 2 is refused. That is
-the same refusal they watched in Demo A, so call back to it.
+**SAY**: a long line of local privilege-escalation bugs, in filesystem mount
+parsers, `nf_tables` and overlayfs copy-up, were reachable by unprivileged users
+only because they could enter a user namespace first.
+
+Then the correction, which is yours and measured, and which calls back to Demo A.
+Ubuntu's sysctl is an allowlist rather than a switch. At its shipped value of 1,
+Podman still runs rootless containers, because `/etc/apparmor.d/podman` grants
+`userns`, as do ninety other profiles on the image. What gets refused is
+`unshare` by hand and the program from Demo A, because nobody wrote them a
+profile. The room already watched that refusal without knowing what it was.
+
+Then the line from the slide, verbatim:
+> "The feature that makes rootless containers possible is the one hardening
+> guides restrict, and what you are trusting instead is a list of 91 binaries."
+
+**DO**, optional, both read-only and safe on the demo box:
+```bash
+sysctl kernel.unprivileged_userns_clone 2>/dev/null || echo "not on this distro"
+sysctl kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || echo "not on this distro"
+```
+
+If anyone pushes back it is five seconds on the `hardened` VM: the sysctl reads
+1, `podman run` works, `./nsdemo 2` is refused. That is the same refusal they
+watched in Demo A, so call back to it.
+
+No exploit code and no live demonstration of any CVE. Show the sysctls, name the
+shape of the risk, stop there.
 -->
 
 ---
@@ -748,6 +1161,18 @@ and the container still runs as UID 0 inside.
 
 </div>
 
+<!--
+**S37 · KUBERNETES · 25:00**
+
+**SAY**: GA in v1.36, April 2026, after ten years of KEP-127. Point back at S14:
+idmapped mounts are the exact kernel feature that made stateful pods practical
+under this. That is the payback for the seed you planted.
+
+State the caveats from the slide in one breath: a modern kernel, CRI support, the
+UID range per pod caps pods per node, and the container still runs as UID 0
+inside, so `runAsNonRoot` still matters.
+-->
+
 ---
 layout: default
 ---
@@ -763,6 +1188,14 @@ layout: default
 | Network-heavy workloads | **Measure first.** |
 | Host devices, GPUs, low ports | **Probably not.** |
 | Hosts where userns is disabled | **No, and that is coherent.** |
+
+<!--
+**S38 · VERDICT · 26:00**
+
+Do not read the whole table. Land on two rows only: CI runners are the strongest
+yes, host devices and low ports are the clearest no. The rest is there for people
+to photograph and read later.
+-->
 
 ---
 layout: default
@@ -789,6 +1222,23 @@ Not a security button. A smaller, sharper blast radius, bought with real
 trade-offs. That is a good deal, as long as you know you are making it.
 </div>
 
+<!--
+**S39 · TAKEAWAYS · 27:00**
+
+Read all five, they are short. This is the slide you leave up through Q&A.
+
+Slow down on the fifth:
+> "Rootless needs unprivileged user namespaces, which is itself an attack surface.
+> Know your threat model, then choose."
+
+Then the closing line, verbatim, and stop talking immediately after:
+> "Not a security button. A smaller, sharper blast radius, bought with real
+> trade-offs. That is a good deal, as long as you know you are making it."
+
+**Do not advance to the thank-you slide.** Leave this one up and take questions
+against it.
+-->
+
 ---
 layout: end
 url: github.com/asahasrabuddhe/cds-2026-hamburg-crl-slides
@@ -800,16 +1250,29 @@ handles:
 ---
 
 <!--
-Leave the takeaways slide up during Q&A instead of this one.
-Press 'o' for overview, jump back to slide 36.
+**S40 · END · 30:00**
 
-Q&A prep:
-1. Is rootless slower? Networking, and storage on old kernels. Give numbers.
-2. Rootless Kubernetes? Two questions. Rootless kubelet is niche.
-   hostUsers: false is GA and boring, which is the good kind of answer.
-3. Replaces gVisor/Kata? No. They compose. Rootless narrows what an escape
-   yields; those change what an escape must break through.
-4. We disabled userns for hardening. Coherent. You chose rootful with tight
-   seccomp and no docker group. Say so rather than pretending both work.
-5. Is --privileged safe rootless? Safer, not safe.
+You should not be on this slide during Q&A. Leave S39 up. If the deck has moved
+past it, press `o` for the overview grid and click back to S39.
+
+Q&A, in the order you are most likely to be asked:
+
+1. **Is rootless slower?** Networking yes, and storage on old kernels. CPU-bound
+   workloads are unaffected. Give the numbers from S32.
+2. **Can I run Kubernetes rootless?** Two different questions. A fully rootless
+   kubelet, usernetes or k3s rootless, is niche. Pods with `hostUsers: false` on
+   an ordinary cluster is GA and boring, which is the good kind of answer.
+3. **Does it replace gVisor, Kata, Firecracker?** No, they compose. Rootless
+   narrows what an escape yields. Those change what an escape has to break
+   through in the first place.
+4. **We disabled unprivileged user namespaces for hardening, now what?** That is
+   a coherent position, not a mistake. You have chosen rootful with tight seccomp
+   and AppArmor and no `docker` group membership. Say so out loud rather than
+   pretending both are simultaneously possible.
+5. **Is `--privileged` safe in rootless mode?** Safer, not safe. It grants
+   everything your namespace holds. Demo 2 already showed it cannot reach host
+   devices, but it gives full access to everything your own UID owns.
+
+Both repos are linked on this slide. Mention that the safety note about demo 3 is
+in the companion README before anyone runs it unsupervised.
 -->
