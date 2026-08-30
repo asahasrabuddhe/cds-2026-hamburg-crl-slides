@@ -11,7 +11,7 @@
     "dev": "slidev --open",
     "build": "slidev build",
     "export": "slidev export --format pdf --with-clicks",
-    "export:notes": "slidev export --format pdf --with-clicks --with-toc",
+    "export:notes": "slidev export-notes",
     "snippets": "go run ./cmd/snippets",
     "install:theme": "op run --env-file=.env -- npm install"
   },
