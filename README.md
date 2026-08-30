@@ -74,10 +74,22 @@ built against.
 
 ## Presenter notes
 
-Notes are HTML comments at the end of each slide in `slides.md`. Press `p` in
-the dev server for presenter mode, which puts them on your laptop screen while
-the projector keeps the slide. `npm run export:notes` bakes them into a PDF
-for rehearsal.
+Notes are HTML comments at the end of each slide in `slides.md`, and every one
+of the forty slides has them. Press `p` in the dev server for presenter mode,
+which puts them on your laptop screen while the projector keeps the slide.
+`npm run export:notes` bakes them into a PDF for rehearsal.
+
+Each block opens with the slide number, the section and the cumulative time,
+then `SAY`, `DO` and `WATCH FOR`. They carry the whole of
+[`docs/SCRIPT.md`](docs/SCRIPT.md), so nothing else needs to be open on stage.
+
+## The three documents in `docs/`
+
+- [`EVENT-DAY.md`](docs/EVENT-DAY.md) is the operational runbook: what to run,
+  in what order, from ninety minutes out, and what to do when something dies.
+- [`SCRIPT.md`](docs/SCRIPT.md) is the speaker script, slide by slide. Read it
+  in rehearsal; the deck's notes carry it on the day.
+- [`DESIGN.md`](docs/DESIGN.md) is why the deck is shaped the way it is.
 
 ## Stage layout, and the cold open
 
