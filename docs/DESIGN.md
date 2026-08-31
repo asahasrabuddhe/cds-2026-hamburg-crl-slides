@@ -144,7 +144,7 @@ The mapping, which should be on the slide as a table because the audience will p
 | The land title, held by the developer | The host's initial user namespace |
 | Your flat number in the master land registry | Your host UID (1000), unchanged |
 | Redecorating the lobby | `mount -t tmpfs`, `ip link add` |
-| Redirecting traffic on the main road | `mount /dev/sda1`, loading a kernel module |
+| Redirecting traffic on the main road | `mount /dev/<disk>`, loading a kernel module |
 
 The reason this beats the usual "sandbox" or "walled garden" image: it makes the *derived, granted, revocable* nature of the authority obvious. Nobody thinks the committee owns the land.
 
@@ -269,11 +269,11 @@ Eleven minutes total: one four-minute build-it-by-hand segment, then seven minut
 
 ### The staging device: one script, two panes
 
-`rootless-demos.sh` detects which side it is running on and runs identical commands either way. Left pane is a root shell, right pane is yours:
+`scripts/demo.sh` detects which side it is running on and runs identical commands either way. Left pane is a root shell, right pane is yours:
 
 ```console
-# LEFT  (red)     sudo -i ; cd ~/demos ; ./rootless-demos.sh 3
-$ RIGHT (green)             cd ~/demos ; ./rootless-demos.sh 3
+# LEFT  (red)     sudo -i ; cd ~/crl ; ./scripts/demo.sh 3
+$ RIGHT (green)             cd ~/crl ; ./scripts/demo.sh 3
 ```
 
 Say it out loud the first time and then never again: **the same file, the same argument. The only difference is which pane I typed it in.** That removes every "trust me, the other side does this" from the talk, you are not describing the rootful behaviour, you are running it. It also halves what you have to remember on stage, because there is one command per demo rather than two.
@@ -323,10 +323,12 @@ $ ./nsdemo 1
   ── inside the new user namespace ──
   uid=65534  euid=65534  gid=65534
   uid_map: (empty, no mapping exists)
-  CapEff:  000001ffffffffff
+  CapPrm:  0000000000000000
+  CapEff:  0000000000000000
+  CapBnd:  000001ffffffffff
 ```
 
-Two things to say. *This is what a container looks like before anyone tells the kernel who you are: not root, not you, nobody.* And then the nastier one, look at `CapEff`. **Full capability set, held by nobody.** Creating a user namespace grants the full set inside it, mapping or no mapping.
+Two things to say. *This is what a container looks like before anyone tells the kernel who you are: not root, not you, nobody.* And then the nastier one, look at the two sets together. **Full capability set, held by nobody.** The bounding set is unlimited and the effective set is empty. See the amendment below for why the effective set arrives empty rather than full.
 
 **Beat 2: map yourself, and become root.**
 
@@ -402,7 +404,7 @@ Keep `unshare --user; id` in your back pocket as a one-line answer during Q&A.
 The cold open showed the rootless half. Run it properly here, both panes, because it is the cleanest single frame in the talk:
 
 ```console
-$ ./rootless-demos.sh 1
+$ ./scripts/demo.sh 1
 ```
 
 Inside the container, both panes print `uid=0(root)`. On the host, `/proc/<pid>/status` prints `Uid: 0` on the left and `Uid: 1000` on the right. Same image, same command, same claim, one of them is backed by the kernel and one of them is a translation.
@@ -414,7 +416,7 @@ Then the `uid_map` line, which only the right pane has at all. Rootful container
 Question on the slide: *If I have CAP_SYS_ADMIN, can I mount things?*
 
 ```console
-$ ./rootless-demos.sh 2
+$ ./scripts/demo.sh 2
 ```
 
 Three commands, run identically in both panes: mount a tmpfs, mount a real disk, create a device node. Rootful does all three. Rootless mounts the tmpfs happily and fails the other two with `EPERM`. The explanation is one sentence: **tmpfs is flagged `FS_USERNS_MOUNT` in the kernel; ext4 is not.** The capability is genuine, the set of objects it applies to is not.
@@ -435,7 +437,7 @@ Question on the slide: *Same mistake, two outcomes.*
 Run the classic misconfiguration in both panes at once:
 
 ```console
-$ ./rootless-demos.sh 3
+$ ./scripts/demo.sh 3
 ```
 
 First it reads:
@@ -466,7 +468,7 @@ Then flip it, because honesty is the whole framing. The script's third step read
 Question on the slide: *What did I lose?*
 
 ```console
-$ ./rootless-demos.sh 4
+$ ./scripts/demo.sh 4
 ```
 
 The script asks for `--memory=64m` and then asks the container itself what limit it got, by reading `/sys/fs/cgroup/memory.max` from inside. `67108864` means the limit applied. Anything else means it did not, and on a cgroup v1 rootless host you get a warning rather than an error, which is the dangerous part.
@@ -715,7 +717,9 @@ recalculates capabilities, and an unmapped process has euid 65534 rather than
 The bounding set survives. Since Go must fork and exec, which is this talk's
 own argument, beat 1 now prints `CapPrm`, `CapEff` and `CapBnd` together, and
 the gap between the empty effective set and the full bounding set is the
-point.
+point. Section 7 above and S23 in the deck have both been corrected to match,
+so the only place the old `CapEff: 000001ffffffffff` still appears is this
+paragraph, quoting what was wrong.
 
 **Beat 4 no longer probes.** Its child execs while still unmapped, so it holds
 no capabilities, and a later `uid_map` write does not restore them. Probing
