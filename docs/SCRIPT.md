@@ -256,9 +256,9 @@ one segment in the talk with no split screen.
 **SAY**: `CLONE_NEWUSER` is only legal for a single-threaded process. The Go
 runtime is multi-threaded before `main` starts. A Go program can never
 unshare itself into a user namespace, it has to fork and exec, which is
-exactly what `runc` does. Point at the three highlighted fields in the code
-block, `ContainerID: 0, HostID: os.Getuid(), Size: 1`, and say: that struct
-literal *is* the `uid_map` line from S10.
+exactly what `runc` does. Point at the three fields in the code block,
+`ContainerID: 0, HostID: uid, Size: 1`, and say: that struct literal *is*
+the `uid_map` line from S10.
 
 ## Beat 1 (11:45)
 
@@ -268,13 +268,14 @@ literal *is* the `uid_map` line from S10.
 $ ./nsdemo 1
 ```
 
-Expected output: `uid=65534`, empty `uid_map`, a full `CapEff` bitmask.
+Expected output: `uid=65534`, empty `uid_map`, `CapPrm` and `CapEff` all
+zeroes, `CapBnd` `000001ffffffffff`.
 
 **SAY** once it prints:
 
-> Not root. Not you. Nobody. And look at CapEff, full capability set, held
-> by nobody. Creating a user namespace grants the full set inside it,
-> mapping or no mapping.
+> Not root. Not you. Nobody. And look at the two capability sets. The
+> bounding set is full and the effective set is empty. The ceiling is
+> unlimited, the holding is nothing.
 
 Advance to S23.
 

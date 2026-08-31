@@ -190,7 +190,7 @@ Walk out of the gate and try to redirect traffic on the main road, and you are a
 | The land title | Host initial userns |
 | Your flat number | Host UID 1000 |
 | Repaint the lobby | `mount -t tmpfs` |
-| Redirect main road | `mount /dev/sda1` |
+| Redirect main road | `mount /dev/<disk>` |
 
 </div>
 
@@ -426,7 +426,7 @@ layout: default
 ```console
 $ systemctl show user@$(id -u).service -p Delegate
 $ cat /sys/fs/cgroup/user.slice/user-1000.slice/cgroup.controllers
-cpu io memory pids
+cpu memory pids
 ```
 
 <!--
@@ -614,19 +614,21 @@ runtime is multi-threaded before `main` starts. A Go program can never unshare
 itself into a user namespace, it has to fork and exec, which is exactly what
 `runc` does.
 
-Point at the three highlighted fields, `ContainerID: 0`, `HostID: os.Getuid()`,
-`Size: 1`, and say: that struct literal is the `uid_map` line from S10.
+Point at the three fields, `ContainerID: 0`, `HostID: uid`, `Size: 1`, and say:
+that struct literal is the `uid_map` line from S10.
 
 **DO**, beat 1:
 ```bash
 ./nsdemo 1
 ```
 
-Expected: `uid=65534`, an empty `uid_map`, a full `CapEff` bitmask.
+Expected: `uid=65534`, an empty `uid_map`, `CapPrm` and `CapEff` all zeroes, and
+a full `CapBnd`.
 
 **SAY** once it prints:
-> "Not root. Not you. Nobody. And look at CapEff, a full capability set, held by
-> nobody."
+> "Not root. Not you. Nobody. And look at the two capability sets. The bounding
+> set is full and the effective set is empty. The ceiling is unlimited, the
+> holding is nothing."
 -->
 
 ---
@@ -636,14 +638,17 @@ layout: statement
 # Full capability set.<br/>Held by nobody.
 
 <div class="font-mono text-sm opacity-70 pt-8">
-uid=65534 &nbsp; uid_map: (empty) &nbsp; CapEff: 000001ffffffffff
+uid=65534 &nbsp; uid_map: (empty)<br/>
+CapEff: 0000000000000000 &nbsp; CapBnd: 000001ffffffffff
 </div>
 
 <!--
 **S23 · STATEMENT · 12:15**
 
-Creating a user namespace grants the full set inside it, mapping or no mapping.
-Let it sit two seconds, then straight back to the terminal.
+The kernel grants the full set at `clone`, then `execve` takes it back. An
+unmapped process has euid 65534, so the exec counts as unprivileged and the
+effective set arrives empty. The bounding set survives untouched, and that gap
+is the slide. Let it sit two seconds, then straight back to the terminal.
 
 **DO**, beat 2:
 ```bash
@@ -972,7 +977,7 @@ layout: default
 
 <div class="pt-6 opacity-80">
 Rootless cold start to echo, <span class="accent">191 ms</span>.
-Pull and extract of an 870 MB image, <span class="accent">12 s</span>.
+Cold pull and extract of a <span class="accent">927 MB</span> image.
 </div>
 
 <div class="pt-4 opacity-60 text-sm">
