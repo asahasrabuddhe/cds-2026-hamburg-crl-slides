@@ -952,8 +952,8 @@ RIGHT:  ./scripts/demo.sh 5
 ```
 
 Expected: publishing port 80 fails on the right with a `rootlessport` error and
-succeeds on the left. The script also prints which of `pasta` and `slirp4netns`
-is in use.
+succeeds on the left. The script also lists which of `pasta` and
+`slirp4netns` are installed, and on this box both are.
 
 Narrate rather than reading the terminal: packets copied through a userspace
 process cost throughput and latency, and ports below 1024 need a sysctl that
