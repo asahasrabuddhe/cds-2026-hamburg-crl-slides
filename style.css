@@ -58,3 +58,15 @@
 .slidev-layout table td:last-child {
   padding-right: 0;
 }
+
+/* Slidev 52.14.1 leaves the goto dialog visible on every slide. Its closed
+ * state only sets `-top-20`, which parks the input above the viewport but
+ * leaves the results list down the right edge, and the list itself renders on
+ * `result.length > 0` with no check on whether the dialog is open. Fuse
+ * returns every slide for the empty query, so the list is never empty.
+ *
+ * This is what 52.19.1 does in the component. Delete it when the CLI moves. */
+#slidev-goto-dialog:not(.top-5) {
+  opacity: 0;
+  pointer-events: none;
+}
