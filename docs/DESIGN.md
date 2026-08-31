@@ -718,8 +718,8 @@ The bounding set survives. Since Go must fork and exec, which is this talk's
 own argument, beat 1 now prints `CapPrm`, `CapEff` and `CapBnd` together, and
 the gap between the empty effective set and the full bounding set is the
 point. Section 7 above and S23 in the deck have both been corrected to match,
-so the only place the old `CapEff: 000001ffffffffff` still appears is this
-paragraph, quoting what was wrong.
+so the old `CapEff: 000001ffffffffff` now survives only where it is quoted as
+the thing that was wrong.
 
 **Beat 4 no longer probes.** Its child execs while still unmapped, so it holds
 no capabilities, and a later `uid_map` write does not restore them. Probing

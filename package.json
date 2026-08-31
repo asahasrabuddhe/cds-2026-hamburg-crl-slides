@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "slidev --open",
     "build": "slidev build",
-    "export": "slidev export --format pdf --with-clicks",
+    "export": "slidev export --format pdf --with-clicks --output slides.pdf",
     "export:notes": "slidev export-notes",
     "snippets": "go run ./cmd/snippets",
     "install:theme": "op run --env-file=.env -- npm install"
