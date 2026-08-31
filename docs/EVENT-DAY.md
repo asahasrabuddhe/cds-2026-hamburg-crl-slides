@@ -37,6 +37,26 @@ its sibling. Every path below is relative to one of those two.
   git diff --submodule
   ```
 
+- **Re-measure the storage row on S32, on a fast link.** The slide says
+  "870 MB image, 12 s". That is a real pair, measured against `golang:1.23`,
+  but `scripts/bench.sh` now pulls `golang:1.27.0` to match the Go the VM
+  installs, and that image is 927 MB on disk. So the slide and the script no
+  longer agree.
+
+  The time needs care rather than a straight copy. The row measures pull and
+  extract together, so it is bandwidth-bound: on a slow link `golang:1.27.0`
+  reports 93 seconds, and `golang:1.23` re-pulled on that same link reports 69
+  seconds against its original 12. Run it where you ran it the first time, then
+  put both numbers on the slide together.
+
+  ```bash
+  ./scripts/bench.sh build
+  ```
+
+  The 927 MB does not move, so if you would rather not re-measure at all, drop
+  the seconds from the slide and keep the size. A missing number is better than
+  one you cannot defend.
+
 - **Decide about S07's photograph.** `public/images/` holds only a `.gitkeep`.
   The condo slide works as text and it is the first thing the script tells you
   to cut, so this is a decision rather than a blocker.
@@ -75,11 +95,11 @@ its sibling. Every path below is relative to one of those two.
 In the hotel, on mains power.
 
 1. **Run the benchmarks, if you are going to re-run them at all.**
-   `./scripts/bench.sh` pulls `networkstatic/iperf3` and `golang:1.23`, and
+   `./scripts/bench.sh` pulls `networkstatic/iperf3` and `golang:1.27.0`, and
    those are the only two images cloud-init does not pre-pull. It is the one
    thing here that needs working internet inside the VM, so it does not happen
-   at the venue. The numbers on S32 are already good; this is only if you want
-   fresher ones.
+   at the venue. The iperf3 and cold-start rows on S32 are good. The storage
+   row is not, see Part 0.
 
 2. **Full dry run, both repos, start to finish.** Not a spot check. Every
    command in the script's own reference, in the order it lists them.
