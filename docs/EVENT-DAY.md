@@ -18,45 +18,6 @@ its sibling. Every path below is relative to one of those two.
 
 ### Yours, before you travel
 
-- **Push both repos.** Neither has been pushed since the fixes below landed, and
-  the submodule cannot be bumped until the code repo's commits are on GitHub.
-
-  ```bash
-  git -C ../cds-2026-hamburg-crl-code push
-  git push
-  ```
-
-- **Bump the submodule afterwards.** `vendor/crl-code` is pinned at `d54e642`,
-  which is now two commits behind. The snippet generator only reads
-  `cmd/nsdemo/main.go` and that file has not changed, so the pin costs you
-  nothing on stage, but CI regenerates snippets from whatever the pin points at
-  and the deck should ship against the code it describes.
-
-  ```bash
-  git submodule update --remote vendor/crl-code
-  git diff --submodule
-  ```
-
-- **Re-measure the storage row on S32, on a fast link.** The slide says
-  "870 MB image, 12 s". That is a real pair, measured against `golang:1.23`,
-  but `scripts/bench.sh` now pulls `golang:1.27.0` to match the Go the VM
-  installs, and that image is 927 MB on disk. So the slide and the script no
-  longer agree.
-
-  The time needs care rather than a straight copy. The row measures pull and
-  extract together, so it is bandwidth-bound: on a slow link `golang:1.27.0`
-  reports 93 seconds, and `golang:1.23` re-pulled on that same link reports 69
-  seconds against its original 12. Run it where you ran it the first time, then
-  put both numbers on the slide together.
-
-  ```bash
-  ./scripts/bench.sh build
-  ```
-
-  The 927 MB does not move, so if you would rather not re-measure at all, drop
-  the seconds from the slide and keep the size. A missing number is better than
-  one you cannot defend.
-
 - **Decide about S07's photograph.** `public/images/` holds only a `.gitkeep`.
   The condo slide works as text and it is the first thing the script tells you
   to cut, so this is a decision rather than a blocker.
@@ -87,6 +48,31 @@ its sibling. Every path below is relative to one of those two.
 - **Slide numbers are the deck's, S01 to S40.** The script used to number to 38
   against a forty-slide deck and drifted by one from S28 onward. The notes and
   the script now agree.
+- **Both repos are pushed and `vendor/crl-code` is current.** The pin matches the
+  code repo's `HEAD`, so the deck ships against the code it describes. Nothing
+  here is waiting on a push any more.
+- **S23 was wrong about capabilities and is fixed.** It used to print
+  `CapEff: 000001ffffffffff` for beat 1, which the program never produces. The
+  kernel grants the full set at `clone`, then `execve` takes it back, because an
+  unmapped process has euid 65534 and the exec counts as unprivileged. The slide
+  now shows an empty `CapEff` against a full `CapBnd`, and the notes say the
+  ceiling is unlimited and the holding is nothing.
+- **S15 no longer claims `io` is delegated.** This image delegates `cpu memory
+  pids`. Demo 4 uses `memory`, so it is unaffected, but do not claim `io` works
+  rootless on this box.
+- **S32's storage row is a size with no time.** The 12 seconds was measured
+  against `golang:1.23` and `scripts/bench.sh` pulls `golang:1.27.0` now. The row
+  is bandwidth-bound, so no single figure is defensible without naming the link.
+  The 927 MB is a property of the image and stands.
+- **The left pane runs Docker, not Podman.** `demo.sh` picks Docker whenever it
+  is on `PATH` and the VM installs both. `demo.sh check` and `demo.sh 4` ask for
+  Podman-only `--format` fields, so the left pane prints a Go template error
+  before the useful output. It is cosmetic. `ENGINE=podman` suppresses it if the
+  noise bothers you more than the inconsistency would.
+- **The `hardened` VM has no `make`.** That variant omits the `make` and `git`
+  packages, and `vm.sh push` copies git-tracked files only, so `nsdemo` does not
+  cross either. If you intend to prove the S36 allowlist point live, build it in
+  the guest with `go build -o nsdemo ./cmd/nsdemo`.
 
 ---
 
@@ -175,8 +161,9 @@ tmux attach -t talk
 ```
 
 Left pane is rootful and red, right is rootless and green, both in `~/crl`.
-`stage.sh` runs `sudo -i` in the left pane, which is the whole point of doing
-this at T-70: the password gets typed once, off stage.
+Build it at T-70 rather than on stage so that a tmux that comes up wrong is a
+problem you have seventy minutes to fix. Cloud-init grants the demo user
+`NOPASSWD:ALL`, so the `sudo -i` in the left pane never prompts.
 
 Set the terminal font to 20pt or larger before attaching, and read it from the
 back row of the room later.
