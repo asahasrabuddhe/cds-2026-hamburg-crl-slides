@@ -1056,13 +1056,13 @@ layout: default
 
 | iperf3 TCP | Rootful | pasta | slirp4netns |
 |---|---|---|---|
-| Gbit/s | 125 | 83.6 | 28.1 |
-| Relative to veth | 1.00 | 0.67 | 0.22 |
+| Gbit/s | 128 | 82.3 | 28.4 |
+| Relative to veth | 1.00 | 0.64 | 0.22 |
 
 </div>
 
 <div class="pt-6 opacity-80">
-Rootless cold start to echo, <span class="accent">191 ms</span>.
+Rootless cold start to echo, <span class="accent">193 ms</span>.
 Cold pull and extract of a <span class="accent">927 MB</span> image.
 </div>
 
