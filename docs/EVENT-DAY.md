@@ -5,8 +5,9 @@ ContainerDays 2026, Hamburg. 30 minutes plus 5 for questions.
 
 This is the operational document. What you say is in [`SCRIPT.md`](SCRIPT.md)
 and, as of this commit, also in the deck's own presenter notes, so you should
-not need to open `SCRIPT.md` on stage at all. Design rationale is in
-[`DESIGN.md`](DESIGN.md).
+not need to open `SCRIPT.md` on stage at all. The shape underneath the whole
+talk, and the sentences that carry it, are in [`NARRATIVE.md`](NARRATIVE.md).
+Design rationale is in [`DESIGN.md`](DESIGN.md).
 
 The companion repo is at
 `~/Downloads/containerdays-2026/crl/cds-2026-hamburg-crl-code`, and this one is
