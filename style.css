@@ -22,6 +22,19 @@
 .warn h1, .warn h2, .warn p    { color: var(--ac-warning); }
 .rootful h1, .rootful h2       { color: var(--ac-error); }
 
+/* The theme ships 15px body text and slide titles with no bottom margin.
+ * Fine on a laptop, cramped and small from the back of a hall. Every title
+ * gets air underneath, prose goes up to 18px, and code gets a smaller bump
+ * so long command lines keep fitting on one line. */
+:root {
+  --ac-text-body: 18px;
+  --ac-text-code: 14px;
+}
+
+.slidev-layout h1 {
+  margin-bottom: var(--ac-space-5);
+}
+
 /* The theme centres table headers but left-aligns table cells, so every
  * column in the deck sits out of line with its own heading. Four slides use
  * tables and all four are meant to be photographed, so they have to line up.

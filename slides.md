@@ -1,5 +1,7 @@
 ---
 theme: slidev-theme-architectural-console
+addons:
+  - slidev-addon-live-terminal
 title: The Reality of Rootless Containers
 info: |
   ContainerDays 2026, Hamburg
@@ -31,12 +33,28 @@ Automattic · @asahasrabuddhe
 AS
 
 <!--
-**S01 · COVER · 1:30**
+**S01 · COVER · 0:00**
 
-The cold open runs before this slide, with no slide showing. Two tmux panes
-already up, terminal full screen.
+Your name, Automattic, nothing else. This sits up while the room settles. Ten
+seconds once you start talking, then advance into the cold open.
+-->
 
-**DO**, right pane:
+---
+layout: default
+---
+
+<div class="h-full">
+  <DemoTerminal :font-size="18" />
+</div>
+
+<!--
+**COLD OPEN · 0:10**
+
+The audience sees a terminal and nothing else. Single pane, rootless,
+deliberately: splitting the claim across two panes shows two processes and
+proves nothing. Click the terminal once to type.
+
+**DO**:
 ```bash
 ./scripts/demo.sh 1
 ```
@@ -50,11 +68,12 @@ host, prints the host's view of that same PID, then prints the container's
 > telling the truth, and the gap between those two answers is the entire subject
 > of this talk."
 
-Then this slide. Your name, Automattic, nothing else. Ten seconds, then move.
+Then advance straight into S02, which is the payoff line. PageDown works while
+the terminal is focused.
 
 **WATCH FOR** a pull. If the image is not already local this hangs in front of
 the room. `./scripts/demo.sh check` confirms it at pre-flight, so do not skip
-that step.
+that step. If the terminal shows a dead session, `r` restarts it.
 -->
 
 ---
@@ -77,6 +96,8 @@ layout: default
 
 # Three claims
 
+<div class="pt-2 text-xl space-y-6">
+
 <v-clicks>
 
 **1.** Root is not UID 0. Root is a set of capabilities, evaluated against a namespace.
@@ -87,7 +108,9 @@ layout: default
 
 </v-clicks>
 
-<div v-click class="pt-8 opacity-60">
+</div>
+
+<div v-click class="pt-10 opacity-60">
 I run rootless. I also think most of what people believe about it is wrong.
 </div>
 
@@ -173,11 +196,19 @@ layout: two-cols
 
 # The condo committee
 
-You get elected to the management committee.
+You get elected to the management committee. Inside the compound the authority is real. You change the gate timings, you move visitor parking, you repaint the lobby.
 
-Inside the compound you have real authority. You decide where visitor parking goes, you change the gate timings, you repaint the lobby.
+<div v-click>
 
 Walk out of the gate and try to redirect traffic on the main road, and you are a person in a polo shirt with a clipboard.
+
+</div>
+
+<div v-click class="pt-2">
+
+Nobody ever asks whether you are on the committee. They ask who owns the thing you are trying to change.
+
+</div>
 
 ::right::
 
@@ -187,23 +218,32 @@ Walk out of the gate and try to redirect traffic on the main road, and you are a
 |---|---|
 | The compound | User namespace |
 | Committee authority | Capabilities in it |
-| The land title | Host initial userns |
-| Your flat number | Host UID 1000 |
 | Repaint the lobby | `mount -t tmpfs` |
 | Redirect main road | `mount /dev/<disk>` |
+| Your flat number | Host UID 1000 |
+| <span class="accent">The land title</span> | <span class="accent">Host initial userns</span> |
 
 </div>
 
 <!--
 **S07 · ANALOGY · 3:55**
 
-Sixty seconds, and do not linger. The point is that nobody thinks the committee
-owns the land: the authority is derived, granted and revocable.
+Sixty seconds, and do not linger. The authority is derived, granted and
+revocable, and nobody thinks the committee owns the land.
 
-Read the first and last row of the table on the right, not every row.
+Read the first and last row of the table, not every row. In that order the two
+of them are the whole slide: you were granted a compound, somebody else holds
+the title.
+
+**SAY**, on the second click:
+> "Nobody ever asks whether you are on the committee. They ask who owns the
+> thing you are trying to change."
+
+That is S05's rule in the analogy's own words, so it is the line to keep if you
+have to compress. The analogy comes back twice, at S09 and at S10.
 
 **CHECKPOINT** this is the first thing to cut if you are behind. Go straight to
-S08.
+S08. If you cut it, drop the callback clause in S09 and S10 as well.
 -->
 
 ---
@@ -268,6 +308,9 @@ I may map them however I like inside a namespace I create.
 **SAY**: the administrator delegated 65,536 UIDs, starting at 100000, to me. I
 may map them however I like inside a namespace I create.
 
+**CALLBACK**, one clause, on the word delegated:
+> "The committee did not vote itself the compound."
+
 Nothing to type here. The live version is Demo A.
 -->
 
@@ -308,6 +351,9 @@ A file written by "root" inside a rootless container lands on disk owned by you.
 Then: a file written as root inside a rootless container lands on disk owned by
 you. This surprises almost everybody, including people who run rootless
 containers daily. Pause here and let it land.
+
+**CALLBACK**, only if the room is with you:
+> "Whatever the minutes say, the post is still addressed to your flat."
 -->
 
 ---
@@ -588,8 +634,11 @@ class: text-center
 
 **SAY**: "Podman did this in one command. What did it actually do?"
 
-Switch to a full screen terminal, single pane, right side only. This is the one
-segment in the talk with no split screen.
+No window switch. The next three slides each carry a rootless terminal into the
+`primary` VM, already in `~/crl`, and they are all the same session, so the
+scrollback carries across the beats. Click a terminal once to type in it;
+PageUp and PageDown still drive the deck while it has focus, and `r` restarts a
+dead session. Demo A is single pane, rootless only, same as before.
 -->
 
 ---
@@ -600,10 +649,14 @@ layout: default
 
 <<< @/snippets/unshare-raw.go go
 
-<div v-click class="pt-6 opacity-80">
+<div v-click class="pt-2 opacity-80">
 <code>CLONE_NEWUSER</code> is only legal for a single-threaded process.
 The Go runtime is multi-threaded before <code>main</code> starts.
 So it forks and execs. Exactly what runc does.
+</div>
+
+<div class="h-36 mt-3">
+  <DemoTerminal />
 </div>
 
 <!--
@@ -617,7 +670,7 @@ itself into a user namespace, it has to fork and exec, which is exactly what
 Point at the three fields, `ContainerID: 0`, `HostID: uid`, `Size: 1`, and say:
 that struct literal is the `uid_map` line from S10.
 
-**DO**, beat 1:
+**DO**, beat 1, in the slide's terminal (click it first):
 ```bash
 ./nsdemo 1
 ```
@@ -637,9 +690,13 @@ layout: statement
 
 # Full capability set.<br/>Held by nobody.
 
-<div class="font-mono text-sm opacity-70 pt-8">
+<div class="font-mono text-sm opacity-70 pt-6">
 uid=65534 &nbsp; uid_map: (empty)<br/>
 CapEff: 0000000000000000 &nbsp; CapBnd: 000001ffffffffff
+</div>
+
+<div class="h-52 mt-8 text-left">
+  <DemoTerminal />
 </div>
 
 <!--
@@ -648,7 +705,7 @@ CapEff: 0000000000000000 &nbsp; CapBnd: 000001ffffffffff
 The kernel grants the full set at `clone`, then `execve` takes it back. An
 unmapped process has euid 65534, so the exec counts as unprivileged and the
 effective set arrives empty. The bounding set survives untouched, and that gap
-is the slide. Let it sit two seconds, then straight back to the terminal.
+is the slide. Let it sit two seconds, then straight down to the terminal.
 
 **DO**, beat 2:
 ```bash
@@ -672,6 +729,10 @@ layout: statement
 
 <div class="opacity-70 pt-6">
 Three fields. That is the entire security model.
+</div>
+
+<div class="h-52 mt-8 text-left">
+  <DemoTerminal />
 </div>
 
 <!--
@@ -745,16 +806,22 @@ class: text-center
 
 ## One script. Two panes.<br/>The only difference is where I typed it.
 
-<div class="font-mono text-sm pt-8">
+<div class="font-mono text-sm pt-4">
 <span class="rootful"># sudo -i ; ./scripts/demo.sh 3</span><br/>
 <span class="rootless">$ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;./scripts/demo.sh 3</span>
+</div>
+
+<div class="grid grid-cols-2 gap-4 h-48 mt-6 text-left">
+  <DemoTerminal root :font-size="13" />
+  <DemoTerminal :font-size="13" />
 </div>
 
 <!--
 **S26 · SECTION · 15:00**
 
-Switch to the split screen, both panes visible. LEFT is rootful and red, RIGHT is
-rootless and green, and stays that way for the rest of the talk.
+The two panes are on the slide from here on. LEFT is rootful and red, RIGHT is
+rootless and green, and stays that way for the rest of the talk. Click a pane
+to type in it, same as the Demo A terminals.
 
 **SAY**, pointing at the two lines:
 > "Left pane, sudo, this script, argument three. Right pane, same file, same
@@ -762,8 +829,8 @@ rootless and green, and stays that way for the rest of the talk.
 
 Say it once. Do not repeat it for the later demos, the room has it now.
 
-Demo 1 already ran in the cold open, so do not rerun it. Gesture at the output
-still in the scrollback, or say:
+Demo 1 already ran in the cold open after the cover, and the right pane is the
+same session, so its output is still in the scrollback. Gesture at it, or say:
 > "Container 0 to host 1000 on the right, container 0 to host 0 on the left. No
 > translation, no boundary."
 
@@ -811,7 +878,7 @@ layout: default
 -v /etc:/host   →   echo "backdoor::0:0::/root:/bin/sh" >> /host/passwd
 ```
 
-<div class="grid grid-cols-2 gap-8 pt-8 font-mono">
+<div class="grid grid-cols-2 gap-8 pt-4 font-mono">
 <div class="border-l-2 b-rootful pl-4">
 <div class="rootful">LEFT</div>
 <div class="text-2xl pt-2">WROTE</div>
@@ -822,6 +889,11 @@ layout: default
 <div class="text-2xl pt-2">DENIED</div>
 <div class="opacity-60 pt-2 text-sm">Container UID 0 is host UID 1000. You.</div>
 </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4 h-44 mt-4">
+  <DemoTerminal root :font-size="13" />
+  <DemoTerminal :font-size="13" />
 </div>
 
 <!--
@@ -891,9 +963,19 @@ class: text-center
 
 ## Ask for a limit.<br/>Then ask the container what it got.
 
-<div class="font-mono pt-8 opacity-70">
+<div class="font-mono pt-4 opacity-70">
 67108864 &nbsp;=&nbsp; the limit applied<br/>
 anything else &nbsp;=&nbsp; it did not
+</div>
+
+<div class="relative h-48 mt-6 text-left">
+  <div v-click.hide="1" class="absolute inset-0 grid grid-cols-2 gap-4">
+    <DemoTerminal root :font-size="13" />
+    <DemoTerminal :font-size="13" />
+  </div>
+  <div v-click="1" class="absolute inset-0">
+    <DemoTerminal vm="cgroupv1" :font-size="13" />
+  </div>
 </div>
 
 <!--
@@ -910,9 +992,9 @@ RIGHT:  ./scripts/demo.sh 4
 Expected on cgroup v2 with delegation: both panes read `67108864` from inside
 the container, so the limit applied on both sides.
 
-Then the second half, live on the cgroup v1 box. That VM is already up and
-already logged in from T-90, so switch to its window rather than dialling out
-now:
+Then the second half, live on the cgroup v1 box. One click swaps the pair for a
+single rootless terminal on `cgroupv1`, already connected because that VM has
+been up since T-90:
 ```bash
 RIGHT:  ./scripts/demo.sh 4
 ```
@@ -935,8 +1017,12 @@ class: text-center
 
 ## Userspace networking, and its bill
 
-<div class="font-mono text-sm pt-8 opacity-70">
+<div class="font-mono text-sm pt-4 opacity-70">
 measured beforehand. never benchmark live.
+</div>
+
+<div class="h-52 mt-6 text-left">
+  <DemoTerminal />
 </div>
 
 <!--
@@ -946,7 +1032,7 @@ measured beforehand. never benchmark live.
 > "The throughput numbers were measured beforehand. I am not benchmarking network
 > throughput live on conference wifi, and neither should you."
 
-**DO**, live, quick and safe, RIGHT pane only:
+**DO**, live, quick and safe, in the slide's terminal, rootless only:
 ```bash
 RIGHT:  ./scripts/demo.sh 5
 ```
@@ -1083,7 +1169,7 @@ $ sysctl kernel.apparmor_restrict_unprivileged_userns
 
 <v-clicks>
 
-<div class="pt-6">
+<div class="pt-2">
 
 A long line of local privilege-escalation bugs (filesystem mount parsers, nf_tables, overlayfs copy-up) were reachable by unprivileged users **only because** they could enter a user namespace first.
 
@@ -1099,6 +1185,10 @@ Ubuntu's is an allowlist, not a switch. Podman is on it. `unshare`, and the prog
 
 The feature that makes rootless containers possible is the one hardening guides restrict, and what you are trusting instead is a list of 91 binaries.
 
+</div>
+
+<div class="h-32 mt-3">
+  <DemoTerminal vm="hardened" :auto-connect="false" :font-size="13" />
 </div>
 
 </v-clicks>
@@ -1127,9 +1217,12 @@ sysctl kernel.unprivileged_userns_clone 2>/dev/null || echo "not on this distro"
 sysctl kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || echo "not on this distro"
 ```
 
-If anyone pushes back it is five seconds on the `hardened` VM: the sysctl reads
-1, `podman run` works, `./nsdemo 2` is refused. That is the same refusal they
-watched in Demo A, so call back to it.
+If anyone pushes back it is five seconds on the `hardened` VM: the last click
+reveals a terminal for it, click-to-start so it never dials out on its own. The
+sysctl reads 1, `podman run` works, `./nsdemo 2` is refused. That is the same
+refusal they watched in Demo A, so call back to it. It only connects if the VM
+is up, which T-90 does not do by default: `./qemu/vm.sh up hardened` and
+`make push VARIANT=hardened` beforehand, or skip the click and say it.
 
 No exploit code and no live demonstration of any CVE. Show the sysctls, name the
 shape of the risk, stop there.
