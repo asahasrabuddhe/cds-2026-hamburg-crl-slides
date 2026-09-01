@@ -90,6 +90,10 @@ In the hotel, on mains power.
 2. **Full dry run, both repos, start to finish.** Not a spot check. Every
    command in the script's own reference, in the order it lists them.
 
+   This one is not optional any more. Demo 2, demo 4 and demo 5 all changed
+   behaviour, so what you rehearsed before is not what the box does now. Demo 1
+   and demo 3 in particular have not been run since the change.
+
 3. **`./scripts/demo.sh all` twice, on `primary`.** The second run proves the
    demos are idempotent, which is the property you are relying on at 18:00 when
    demo 3 has half-died. Confirm `grep backdoor /etc/passwd` comes back empty
@@ -99,9 +103,14 @@ In the hotel, on mains power.
    first talk where the deck carries the whole script, so read it once as a
    document rather than clicking through it.
 
-5. **Charge everything.** Laptop, clicker, phone.
+5. **Time yourself, twice.** The pacing card in Part 6 is derived from the two
+   hard checkpoints, not measured, so every mark on it is a guess. Two timed
+   run-throughs turn it into a real card. Move the numbers in the table and in
+   the deck's notes together.
 
-6. **Every notification off.** Slack, Mail, Calendar, iMessage. Focus on,
+6. **Charge everything.** Laptop, clicker, phone.
+
+7. **Every notification off.** Slack, Mail, Calendar, iMessage. Focus on,
    screen saver off, auto-lock off, auto-update off.
 
 ---
@@ -128,7 +137,10 @@ back on.
 
 Bring up `hardened` as well only if you intend to prove the S36 allowlist point
 live. It is a good five seconds if someone pushes back, and dead weight if
-nobody does.
+nobody does. Note that this one has never been booted, so it is a full
+provision rather than a warm start, and it needs `go build -o nsdemo
+./cmd/nsdemo` rather than `make build`. Do it the night before if you want it
+at all.
 
 This is also where the stale `qemu/ssh_config` from the repo move heals itself:
 `push` and `up` both rewrite it from the current directory. Do not use the raw
