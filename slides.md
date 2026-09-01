@@ -191,62 +191,6 @@ without ever holding root on the host.
 -->
 
 ---
-layout: two-cols
----
-
-# The condo committee
-
-You get elected to the management committee. Inside the compound the authority is real. You change the gate timings, you move visitor parking, you repaint the lobby.
-
-<div v-click>
-
-Walk out of the gate and try to redirect traffic on the main road, and you are a person in a polo shirt with a clipboard.
-
-</div>
-
-<div v-click class="pt-2">
-
-Nobody ever asks whether you are on the committee. They ask who owns the thing you are trying to change.
-
-</div>
-
-::right::
-
-<div class="pt-16">
-
-| Condo | Container |
-|---|---|
-| The compound | User namespace |
-| Committee authority | Capabilities in it |
-| Repaint the lobby | `mount -t tmpfs` |
-| Redirect main road | `mount /dev/<disk>` |
-| Your flat number | Host UID 1000 |
-| <span class="accent">The land title</span> | <span class="accent">Host initial userns</span> |
-
-</div>
-
-<!--
-**S07 · ANALOGY · 3:55**
-
-Sixty seconds, and do not linger. The authority is derived, granted and
-revocable, and nobody thinks the committee owns the land.
-
-Read the first and last row of the table, not every row. In that order the two
-of them are the whole slide: you were granted a compound, somebody else holds
-the title.
-
-**SAY**, on the second click:
-> "Nobody ever asks whether you are on the committee. They ask who owns the
-> thing you are trying to change."
-
-That is S05's rule in the analogy's own words, so it is the line to keep if you
-have to compress. The analogy comes back twice, at S09 and at S10.
-
-**CHECKPOINT** this is the first thing to cut if you are behind. Go straight to
-S08. If you cut it, drop the callback clause in S09 and S10 as well.
--->
-
----
 layout: default
 ---
 
@@ -308,9 +252,6 @@ I may map them however I like inside a namespace I create.
 **SAY**: the administrator delegated 65,536 UIDs, starting at 100000, to me. I
 may map them however I like inside a namespace I create.
 
-**CALLBACK**, one clause, on the word delegated:
-> "The committee did not vote itself the compound."
-
 Nothing to type here. The live version is Demo A.
 -->
 
@@ -351,9 +292,6 @@ A file written by "root" inside a rootless container lands on disk owned by you.
 Then: a file written as root inside a rootless container lands on disk owned by
 you. This surprises almost everybody, including people who run rootless
 containers daily. Pause here and let it land.
-
-**CALLBACK**, only if the room is with you:
-> "Whatever the minutes say, the post is still addressed to your flat."
 -->
 
 ---
