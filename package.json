@@ -21,7 +21,7 @@
     "vue": "3.5.29"
   },
   "dependencies": {
-    "slidev-addon-live-terminal": "file:../../slidev-addon-live-terminal",
+    "slidev-addon-live-terminal": "^0.2.0",
     "slidev-theme-architectural-console": "0.1.1"
   }
 }
