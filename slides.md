@@ -379,8 +379,8 @@ layout: default
 ```
 
 <div v-click class="pt-8 opacity-80">
-Remember this one. It is the exact kernel feature that unblocked
-stateful pods in Kubernetes, and we come back to it at the end.
+Remember this one. It is the exact kernel feature that let user-namespaced
+pods use volumes in Kubernetes, and we come back to it at the end.
 </div>
 
 <!--
@@ -389,8 +389,9 @@ stateful pods in Kubernetes, and we come back to it at the end.
 **SAY**: the VFS shifts ownership on the fly. No recursive chown, no copy.
 
 Then plant the seed deliberately:
-> "Remember this one. It is the exact kernel feature that unblocked stateful pods
-> in Kubernetes, and we come back to it in the last five minutes."
+> "Remember this one. It is the exact kernel feature that let user-namespaced
+> pods use volumes in Kubernetes, and we come back to it in the last five
+> minutes."
 
 Paid back on S37.
 -->
@@ -995,7 +996,7 @@ layout: default
 | iperf3 TCP | Rootful | pasta | slirp4netns |
 |---|---|---|---|
 | Gbit/s | 128 | 82.3 | 28.4 |
-| Relative to veth | 1.00 | 0.64 | 0.22 |
+| vs veth | baseline | 36% slower | 78% slower |
 
 </div>
 
@@ -1031,13 +1032,15 @@ layout: default
 
 # What rootless genuinely fixes
 
-| Threat | Why rootless helps |
-|---|---|
-| `docker` group equals root | No privileged daemon, no root-owned socket |
-| Escape to host root (CVE-2019-5736) | The runtime binary is not writable by your UID |
-| Leaked fd escapes (CVE-2024-21626) | Reachable files are ones your UID already reached |
-| Careless `-v /:/host` | Bounded by your UID's own permissions |
-| Multi-tenant CI runners | Each job gets a distinct UID range |
+<div class="text-xl space-y-4 pt-4">
+
+- **`docker` group equals root.** No privileged daemon, no root-owned socket.
+- **Escape to host root (CVE-2019-5736).** The runtime binary is not writable by your UID.
+- **Leaked fd escapes (CVE-2024-21626).** Reachable files are ones your UID already reached.
+- **Careless `-v /:/host`.** Bounded by your UID's own permissions.
+- **Multi-tenant CI runners.** Each job gets a distinct UID range.
+
+</div>
 
 <!--
 **S33 · TABLE · 22:00**
@@ -1054,14 +1057,16 @@ layout: default
 
 # What it does not touch
 
-| Threat | Still fully exposed |
-|---|---|
-| Kernel LPE | One shared kernel. A kernel bug is a kernel bug. |
-| Your own data | SSH keys, cloud creds, source, `~/.kube/config` |
-| Egress abuse | Mining, exfiltration, botnets. No root needed. |
-| Supply chain | A malicious image runs as you. That is enough. |
-| Denial of service | Especially where cgroup limits are ignored |
-| Lateral movement | Same UID range, same everything |
+<div class="text-xl space-y-3 pt-4">
+
+- **Kernel LPE.** One shared kernel. A kernel bug is a kernel bug.
+- **Your own data.** SSH keys, cloud creds, source, `~/.kube/config`.
+- **Egress abuse.** Mining, exfiltration, botnets. No root needed.
+- **Supply chain.** A malicious image runs as you. That is enough.
+- **Denial of service.** Especially where cgroup limits are ignored.
+- **Lateral movement.** Same UID range, same everything.
+
+</div>
 
 <!--
 **S34 · TABLE · 22:45**
@@ -1149,18 +1154,27 @@ Then the line from the slide, verbatim:
 > "The feature that makes rootless containers possible is the one hardening
 > guides restrict, and what you are trusting instead is a list of 91 binaries."
 
-**DO**, optional, both read-only and safe on the demo box:
+**DO**, optional, both read-only and safe on the demo box. Both keys exist on
+this Ubuntu 24.04 VM, so they return values, not errors:
 ```bash
-sysctl kernel.unprivileged_userns_clone 2>/dev/null || echo "not on this distro"
-sysctl kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || echo "not on this distro"
+sysctl kernel.unprivileged_userns_clone             # 1 on the primary VM
+sysctl kernel.apparmor_restrict_unprivileged_userns # 0 on primary, 1 on hardened
 ```
 
 If anyone pushes back it is five seconds on the `hardened` VM: the last click
-reveals a terminal for it, click-to-start so it never dials out on its own. The
-sysctl reads 1, `podman run` works, `./nsdemo 2` is refused. That is the same
-refusal they watched in Demo A, so call back to it. It only connects if the VM
-is up, which T-90 does not do by default: `./qemu/vm.sh up hardened` and
-`make push VARIANT=hardened` beforehand, or skip the click and say it.
+reveals a terminal for it, click-to-start so it never dials out on its own.
+Three lines, in order:
+```bash
+sysctl kernel.apparmor_restrict_unprivileged_userns    # reads 1
+podman run --rm docker.io/library/alpine:3.20 id       # works: uid=0 inside
+./nsdemo 2                                              # refused: operation not permitted
+```
+Podman is on the AppArmor allowlist, so its container still comes up at the
+restricted value; `nsdemo` is not, so the kernel refuses it the user namespace.
+That is the same refusal they watched in Demo A, so call back to it. It only
+connects if the VM is up, which T-90 does not do by default:
+`./qemu/vm.sh up hardened` and `make push VARIANT=hardened` beforehand, or skip
+the click and say it.
 
 No exploit code and no live demonstration of any CVE. Show the sysctls, name the
 shape of the risk, stop there.
@@ -1176,7 +1190,7 @@ layout: default
 apiVersion: v1
 kind: Pod
 spec:
-  hostUsers: false          # one field, ten years of work
+  hostUsers: false          # one field, open since 2016
   containers:
     - name: app
       image: ghcr.io/example/app:1.0
@@ -1185,28 +1199,46 @@ spec:
 <div v-click class="pt-6 opacity-80">
 
 GA in **v1.36**, April 2026. Alpha 1.25, beta 1.30, default 1.33.
-Stateful pods only became practical once idmapped mounts landed in 5.12.
+Persistent volumes under a user namespace only became practical once idmapped mounts landed in 5.12.
 
 </div>
 
 <div v-click class="pt-4 opacity-60 text-sm">
 
 Caveats: modern kernel and CRI support required, some volume and device
-types restricted, each pod consumes a UID range so pods-per-node is capped,
-and the container still runs as UID 0 inside.
+types restricted, each pod consumes a 65,536-UID range so pods-per-node is
+capped, and the container still runs as UID 0 inside.
 
 </div>
 
 <!--
 **S37 · KUBERNETES · 25:00**
 
-**SAY**: GA in v1.36, April 2026, after ten years of KEP-127. Point back at S14:
-idmapped mounts are the exact kernel feature that made stateful pods practical
-under this. That is the payback for the seed you planted.
+Lead with the field, not the version. `hostUsers: false` turns on, for a whole
+Pod, the same user namespace this talk has been about. Everything from the
+credential model through Demo A is what runs underneath that one line. What you
+ran by hand in a shell is now a declarative field.
 
-State the caveats from the slide in one breath: a modern kernel, CRI support, the
-UID range per pod caps pods per node, and the container still runs as UID 0
-inside, so `runAsNonRoot` still matters.
+**SAY**:
+> "One field. Underneath it is every mechanism we just spent twenty minutes on."
+
+The timeline is the evidence it is real and not a lab toy: alpha in 1.25, GA in
+v1.36 this April, on KEP-127, open since 2016.
+
+**CALLBACK** to the idmapped-mounts slide from earlier:
+> "A user-namespaced pod could not use a persistent volume until the kernel
+> could remap file ownership. That is the 5.12 feature from earlier, paying off
+> here."
+
+State the caveats in one breath and do not soften them: a modern kernel and CRI,
+some volume and device types still restricted, a 65,536-UID range per pod so
+pods-per-node is capped, and the container still runs as UID 0 inside. That
+65,536 is the same range as `/etc/subuid` from the Identity section, so call
+back to it if the room is with you.
+
+**SAY**, on that last caveat, because it is the whole talk again:
+> "This is not `runAsNonRoot`. The process inside is still UID 0. `hostUsers`
+> gives you the boundary, not a non-root process. You want both."
 -->
 
 ---

@@ -589,9 +589,9 @@ the shape of the risk, stop there.
 
 ## S37 (25:00), Kubernetes finally caught up
 
-**SAY**: GA in v1.36, April 2026, after ten years of KEP-127. Point back at
-S14: idmapped mounts are the exact kernel feature that made stateful
-pods practical under this. State the caveats from the slide in one breath,
+**SAY**: GA in v1.36, April 2026, on KEP-127, open since 2016. Point back at
+S14: idmapped mounts are the exact kernel feature that let user-namespaced pods
+use volumes under this. State the caveats from the slide in one breath,
 modern kernel, CRI support, UID range per pod caps pods-per-node, and the
 container still runs as UID 0 inside, `runAsNonRoot` still matters.
 

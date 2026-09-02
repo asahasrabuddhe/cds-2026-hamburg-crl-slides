@@ -29,7 +29,7 @@ The abstract promises "a clear, realistic understanding of what rootless improve
 
 ### Timing gift
 
-User namespaces went GA in Kubernetes v1.36, released 23 April 2026, after ten years of KEP-127. By late October the room will have read the release notes and roughly nobody will have run it in anger. That is the perfect gap for this talk to fill, and it earns the last section a real reason to exist.
+User namespaces went GA in Kubernetes v1.36, released 23 April 2026, on KEP-127, which has been open since 2016. By late October the room will have read the release notes and roughly nobody will have run it in anger. That is the perfect gap for this talk to fill, and it earns the last section a real reason to exist.
 
 ---
 
@@ -205,7 +205,7 @@ Three eras, one slide, because this is where most of the old folklore comes from
 
 The pre-5.12 problem, stated concretely: your image layers on disk are owned by 100000+, not by root. A 3 GB image extracted for the first time used to mean touching every inode. Idmapped mounts moved the translation into the VFS, the same directory appears as owned by `0` in the container and by `100000` on the host, with no on-disk change.
 
-This is also the exact kernel feature that unblocked stateful pods in KEP-127, so it sets up the Kubernetes section later. Plant the seed here, harvest it at 26:00.
+This is also the exact kernel feature that let user-namespaced pods use volumes (KEP-127), so it sets up the Kubernetes section later. Plant the seed here, harvest it at 26:00.
 
 ### 6.3 cgroups, where rootless quietly stops working
 
@@ -548,7 +548,7 @@ No exploit code, no weaponised demo. Show the sysctls, show the capability surfa
 
 ### Kubernetes finally caught up
 
-User namespaces reached GA in **Kubernetes v1.36 (23 April 2026)**, after ten years of KEP-127, alpha in 1.25, beta in 1.30, on by default from 1.33, GA in 1.36. Stateful pods only became practical once idmapped mounts landed in kernel 5.12, which is the callback to §6.2.
+User namespaces reached GA in **Kubernetes v1.36 (23 April 2026)**, on KEP-127 (open since 2016), alpha in 1.25, beta in 1.30, on by default from 1.33, GA in 1.36. Persistent volumes under a user namespace only became practical once idmapped mounts landed in kernel 5.12, which is the callback to §6.2.
 
 ```yaml
 apiVersion: v1
@@ -556,7 +556,7 @@ kind: Pod
 metadata:
   name: honest-pod
 spec:
-  hostUsers: false          # ← one field, ten years of work
+  hostUsers: false          # ← one field, open since 2016
   containers:
     - name: app
       image: ghcr.io/example/app:1.0
