@@ -3,7 +3,7 @@
 // version except the QR box shows a real image when a `qr` prop is given,
 // falling back to the theme's [ QR ] placeholder otherwise.
 defineProps<{
-  url: string
+  url?: string
   handles?: Array<{ label: string; href?: string }>
   qr?: string
 }>()
@@ -14,8 +14,7 @@ defineProps<{
     <div class="end-left">
       <span class="ac-label">// that's a wrap</span>
       <h1 class="ac-accent">Thank You</h1>
-      <p class="ac-muted end-cta">The slides, code, and gcr repo are at:</p>
-      <span class="end-url">{{ url }}</span>
+      <p class="ac-muted end-cta">Slides, code, and demo, all on GitHub:</p>
       <div v-if="handles && handles.length" class="chip-row">
         <a
           v-for="handle in handles"
@@ -56,12 +55,6 @@ defineProps<{
   font-family: var(--ac-font-sans);
   font-size: 17px;
   margin: 0;
-}
-
-.end-url {
-  font-family: var(--ac-font-mono);
-  font-size: 16px;
-  color: var(--ac-primary);
 }
 
 .chip-row {

@@ -1309,9 +1309,10 @@ against it.
 
 ---
 layout: end
-url: github.com/asahasrabuddhe/cds-2026-hamburg-crl-slides
 qr: /images/qr-slides.svg
 handles:
+  - label: cds-2026-hamburg-crl-slides
+    href: https://github.com/asahasrabuddhe/cds-2026-hamburg-crl-slides
   - label: cds-2026-hamburg-crl-code
     href: https://github.com/asahasrabuddhe/cds-2026-hamburg-crl-code
   - label: "@asahasrabuddhe"
