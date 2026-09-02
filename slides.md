@@ -110,9 +110,9 @@ layout: default
 
 </div>
 
-<div v-click class="pt-10 opacity-60">
+<!-- <div v-click class="pt-10 opacity-60">
 I run rootless. I also think most of what people believe about it is wrong.
-</div>
+</div> -->
 
 <!--
 **S03 · CLAIMS · 1:55**
@@ -159,6 +159,13 @@ flowchart TD
     O --> K["capability check runs<br/>against THIS owner"]
 ```
 
+<div v-click class="pt-3 grid grid-cols-2 gap-x-8 gap-y-1 font-mono text-sm opacity-80 whitespace-nowrap">
+<div><span class="accent">CAP_SYS_ADMIN</span> — mount</div>
+<div><span class="accent">CAP_NET_BIND_SERVICE</span> — bind &lt;1024</div>
+<div><span class="accent">CAP_SETUID</span> — change UID</div>
+<div><span class="accent">CAP_NET_RAW</span> — raw sockets</div>
+</div>
+
 <!--
 **S05 · DIAGRAM · 2:55**
 
@@ -169,6 +176,23 @@ than against a global notion of root.
 
 The one sentence that matters: does this process hold the capability for this
 operation, in the user namespace that owns the resource?
+
+Four examples worth naming, since all four resurface later and the room should
+recognise them when they come back:
+
+- `CAP_SYS_ADMIN` covers mount and a long tail of admin syscalls. Inside a user
+  namespace it mounts a tmpfs, not a real block device. That is Demo 2, S27.
+- `CAP_NET_BIND_SERVICE` lets you bind a port below 1024, but only inside the
+  net namespace you own. Userspace networking still refuses it without a host
+  sysctl. That is S18.
+- `CAP_SETUID` lets you change UID, but widening a `uid_map` beyond your own
+  delegated range needs `CAP_SETUID` in the parent namespace, which you do not
+  have. That is the Demo A failure on S24.
+- `CAP_NET_RAW` is what `ping` needs for a raw socket, gated separately by
+  `net.ipv4.ping_group_range`. Also S18.
+
+Same capability name, different reach, depending on which namespace is asking.
+That is the whole slide in one sentence, said four times.
 -->
 
 ---
@@ -233,15 +257,11 @@ layout: default
 
 # 1. Identity: two boring files
 
-```console
-$ cat /etc/subuid
-ajitem:100000:65536
+<div class="h-72">
+  <DemoTerminal />
+</div>
 
-$ cat /etc/subgid
-ajitem:100000:65536
-```
-
-<div v-click class="pt-8 opacity-80">
+<div v-click class="pt-4 opacity-80">
 The administrator has delegated 65,536 UIDs, starting at 100000, to me.<br/>
 I may map them however I like inside a namespace I create.
 </div>
@@ -252,7 +272,14 @@ I may map them however I like inside a namespace I create.
 **SAY**: the administrator delegated 65,536 UIDs, starting at 100000, to me. I
 may map them however I like inside a namespace I create.
 
-Nothing to type here. The live version is Demo A.
+**DO**, in the slide's terminal (click it first):
+```bash
+cat /etc/subuid
+cat /etc/subgid
+```
+
+Expected: both read `ajitem:100000:65536`. Quick, two lines, no drama. The
+live version of the mapping itself is Demo A.
 -->
 
 ---
@@ -261,15 +288,13 @@ layout: default
 
 # The map has two lines
 
-```console
-/ # cat /proc/self/uid_map
-         0       1000          1
-         1     100000      65536
-```
+<div class="h-72">
+  <DemoTerminal />
+</div>
 
 <v-clicks>
 
-<div class="pt-6">
+<div class="pt-4">
 
 **Container UID 0 is your own host UID.** Not the start of the range.
 
@@ -289,9 +314,38 @@ A file written by "root" inside a rootless container lands on disk owned by you.
 **SAY**, then pause:
 > "Container UID 0 is your own host UID. Not the start of the delegated range."
 
-Then: a file written as root inside a rootless container lands on disk owned by
-you. This surprises almost everybody, including people who run rootless
+**DO**, in the slide's terminal (click it first):
+```bash
+mkdir -p /tmp/id-demo
+podman run --rm -it -v /tmp/id-demo:/data docker.io/library/alpine:3.20 sh
+```
+Then inside the container:
+```bash
+cat /proc/self/uid_map
+touch /data/as-root
+touch /data/as-1000 && chown 1000:1000 /data/as-1000
+exit
+```
+Then back on the host:
+```bash
+ls -ln /tmp/id-demo
+```
+
+Expected: `as-root` owned by `1000 1000`, `as-1000` owned by `100999 100999`.
+
+`chown` inside the container stands in for a process that actually runs as
+container UID 1000; `setuidgid` is not a stock busybox applet on Alpine, and
+this box has no `/etc/passwd` entry for 1000 for `su` to resolve, so `chown`
+is the reliable way to land a file at that owner live. The end state on disk
+is identical either way, which is the only thing `ls -ln` can see.
+
+**SAY**: a file written as root inside a rootless container lands on disk owned
+by you. This surprises almost everybody, including people who run rootless
 containers daily. Pause here and let it land.
+
+**WATCH FOR** `/tmp/id-demo` surviving a rehearsal. `rm -rf /tmp/id-demo`
+before the talk if you ran this earlier, otherwise `ls -ln` prints stale files
+alongside the new ones.
 -->
 
 ---
@@ -393,7 +447,7 @@ Then plant the seed deliberately:
 > pods use volumes in Kubernetes, and we come back to it in the last five
 > minutes."
 
-Paid back on S37.
+Paid back on S38.
 -->
 
 ---
@@ -989,7 +1043,7 @@ applies to the whole host rather than to your container.
 layout: default
 ---
 
-# Measured on my hardware
+# Measured on my machine
 
 <div class="numeric-table">
 
@@ -1112,7 +1166,7 @@ $ sysctl kernel.apparmor_restrict_unprivileged_userns
 
 <v-clicks>
 
-<div class="pt-2">
+<div class="pt-4">
 
 A long line of local privilege-escalation bugs (filesystem mount parsers, nf_tables, overlayfs copy-up) were reachable by unprivileged users **only because** they could enter a user namespace first.
 
@@ -1124,16 +1178,6 @@ Ubuntu's is an allowlist, not a switch. Podman is on it. `unshare`, and the prog
 
 </div>
 
-<div class="accent pt-4">
-
-The feature that makes rootless containers possible is the one hardening guides restrict, and what you are trusting instead is a list of 91 binaries.
-
-</div>
-
-<div class="h-32 mt-3">
-  <DemoTerminal vm="hardened" :auto-connect="false" :font-size="13" />
-</div>
-
 </v-clicks>
 
 <!--
@@ -1143,16 +1187,50 @@ The feature that makes rootless containers possible is the one hardening guides 
 parsers, `nf_tables` and overlayfs copy-up, were reachable by unprivileged users
 only because they could enter a user namespace first.
 
-Then the correction, which is yours and measured, and which calls back to Demo A.
-Ubuntu's sysctl is an allowlist rather than a switch. At its shipped value of 1,
-Podman still runs rootless containers, because `/etc/apparmor.d/podman` grants
-`userns`, as do ninety other profiles on the image. What gets refused is
-`unshare` by hand and the program from Demo A, because nobody wrote them a
-profile. The room already watched that refusal without knowing what it was.
+Then the correction, which calls back to Demo A: Ubuntu's sysctl is an
+allowlist rather than a switch. At its shipped value of 1, Podman still runs
+rootless containers, because `/etc/apparmor.d/podman` grants `userns`. What
+gets refused is `unshare` by hand and the program from Demo A, because nobody
+wrote them a profile. The room already watched that refusal without knowing
+what it was. The next slide puts a number on the allowlist.
+-->
+
+---
+layout: default
+---
+
+# The allowlist, counted
+
+```console
+$ grep -rl 'userns,' /etc/apparmor.d/ | wc -l
+92
+```
+
+<v-clicks>
+
+<div class="accent pt-6">
+
+The feature that makes rootless containers possible is the one hardening guides restrict, and what you are trusting instead is a list of 92 binaries.
+
+</div>
+
+<div class="h-32 mt-6">
+  <DemoTerminal vm="hardened" :auto-connect="false" :font-size="13" />
+</div>
+
+</v-clicks>
+
+<!--
+**S37 · SYSCTLS · 24:30**
+
+**SAY**: that grep is real, run it on this VM, and it is on the slide because
+this is the measured version of the last slide's claim, not a guess.
+`/etc/apparmor.d/podman` is one of ninety-one other profiles that also grant
+`userns,`, ninety-two including Podman itself.
 
 Then the line from the slide, verbatim:
 > "The feature that makes rootless containers possible is the one hardening
-> guides restrict, and what you are trusting instead is a list of 91 binaries."
+> guides restrict, and what you are trusting instead is a list of 92 binaries."
 
 **DO**, optional, both read-only and safe on the demo box. Both keys exist on
 this Ubuntu 24.04 VM, so they return values, not errors:
@@ -1212,7 +1290,7 @@ capped, and the container still runs as UID 0 inside.
 </div>
 
 <!--
-**S37 · KUBERNETES · 25:00**
+**S38 · KUBERNETES · 25:00**
 
 Lead with the field, not the version. `hostUsers: false` turns on, for a whole
 Pod, the same user namespace this talk has been about. Everything from the
@@ -1255,10 +1333,10 @@ layout: default
 | Kubernetes workers | **Yes**, `hostUsers: false`, no longer exotic. |
 | Network-heavy workloads | **Measure first.** |
 | Host devices, GPUs, low ports | **Probably not.** |
-| Hosts where userns is disabled | **No, and that is coherent.** |
+| Hosts where userns is disabled | **No.** That's a deliberate choice, not a mistake. |
 
 <!--
-**S38 · VERDICT · 26:00**
+**S39 · VERDICT · 26:00**
 
 Do not read the whole table. Land on two rows only: CI runners are the strongest
 yes, host devices and low ports are the clearest no. The rest is there for people
@@ -1291,7 +1369,7 @@ trade-offs. That is a good deal, as long as you know you are making it.
 </div>
 
 <!--
-**S39 · TAKEAWAYS · 27:00**
+**S40 · TAKEAWAYS · 27:00**
 
 Read all five, they are short. This is the slide you leave up through Q&A.
 
@@ -1320,10 +1398,10 @@ handles:
 ---
 
 <!--
-**S40 · END · 30:00**
+**S41 · END · 30:00**
 
-You should not be on this slide during Q&A. Leave S39 up. If the deck has moved
-past it, press `o` for the overview grid and click back to S39.
+You should not be on this slide during Q&A. Leave S40 up. If the deck has moved
+past it, press `o` for the overview grid and click back to S40.
 
 Q&A, in the order you are most likely to be asked:
 
